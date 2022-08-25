@@ -26,9 +26,17 @@ from shutil import copyfile
 # root = '/home/wzielonka/projects/MICA/output/'
 
 # BERNARDO
-logs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/logs/'
-jobs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/jobs/'
-root = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/output/'
+import socket
+host_name = socket.gethostname()
+global host_name
+if host_name == 'OptiPlex-3080':
+    logs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/logs/'
+    jobs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/jobs/'
+    root = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/output/'
+elif host_name == 'duo':
+    logs = '/home/bjgbiesseck/GitHub/MICA/testing/now/logs/'
+    jobs = '/home/bjgbiesseck/GitHub/MICA/testing/now/jobs/'
+    root = '/home/bjgbiesseck/GitHub/MICA/output/'
 
 experiments = []
 
@@ -63,7 +71,12 @@ def test():
                 fid.write('executable = /bin/bash\n')
 
                 # arguments = f'/home/wzielonka/projects/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'    # original
-                arguments = f'/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'   # BERNARDO
+
+                # BERNARDO
+                if host_name == 'OptiPlex-3080':
+                    arguments = f'/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'   # BERNARDO
+                elif host_name == 'duo':
+                    arguments = f'/home/bjgbiesseck/GitHub/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'  # BERNARDO
 
                 fid.write(f'arguments = {arguments}\n')
                 fid.write(f'error = {logs}{run}.err\n')
