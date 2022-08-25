@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PYTHON_ENV=/home/wzielonka/miniconda3/etc/profile.d/conda.sh
+# PYTHON_ENV=/home/wzielonka/miniconda3/etc/profile.d/conda.sh    # original
+PYTHON_ENV=/home/biesseck/anaconda3/etc/profile.d/conda.sh        # BERNARDO
+
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:$PATH
 export LD_LIBRARY_PATH=/is/software/nvidia/nccl-2.4.8-cuda10.1/lib/

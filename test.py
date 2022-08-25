@@ -26,8 +26,20 @@ from jobs import test
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 
+
+# BERNARDO
+# --cfg /media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/configs/mica_Bernardo.yml --test_dataset NOW
+
+
 if __name__ == '__main__':
     from configs.config import parse_args
+
+    # BERNARDO
+    if len(sys.argv) < 2:
+        sys.argv.append('--cfg')
+        sys.argv.append('/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/configs/mica_Bernardo.yml')
+        sys.argv.append('--test_dataset')
+        sys.argv.append('NOW')
 
     cfg, args = parse_args()
 
@@ -39,6 +51,10 @@ if __name__ == '__main__':
     cudnn.deterministic = True
     torch.cuda.empty_cache()
     num_gpus = torch.cuda.device_count()
+
+    # BERNARDO
+    if num_gpus == 0:
+        num_gpus = 1    # cpu
 
     mp.spawn(test, args=(num_gpus, cfg, args), nprocs=num_gpus, join=True)
 

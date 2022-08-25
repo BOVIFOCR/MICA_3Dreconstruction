@@ -20,15 +20,28 @@ import time
 from glob import glob
 from shutil import copyfile
 
-logs = '/home/wzielonka/projects/MICA/testing/now/logs/'
-jobs = '/home/wzielonka/projects/MICA/testing/now/jobs/'
-root = '/home/wzielonka/projects/MICA/output/'
+# ORIGINAL
+# logs = '/home/wzielonka/projects/MICA/testing/now/logs/'
+# jobs = '/home/wzielonka/projects/MICA/testing/now/jobs/'
+# root = '/home/wzielonka/projects/MICA/output/'
+
+# BERNARDO
+logs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/logs/'
+jobs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/jobs/'
+root = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/output/'
 
 experiments = []
 
 
 def test():
     global experiments
+
+    # BERNARDO
+    if not os.path.exists(root):
+        print('BERNARDO: creating dir \'' + root + '\' ... ', end='')
+        os.mkdir(root)
+        print(' done!')
+
     if len(experiments) == 0:
         experiments = list(filter(lambda f: 'condor' not in f, os.listdir('../../output/')))
 
@@ -48,7 +61,10 @@ def test():
             run = f'{experiment}_{str(idx).zfill(5)}'
             with open(f'{jobs}/{run}.sub', 'w') as fid:
                 fid.write('executable = /bin/bash\n')
-                arguments = f'/home/wzielonka/projects/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'
+
+                # arguments = f'/home/wzielonka/projects/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'    # original
+                arguments = f'/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'   # BERNARDO
+
                 fid.write(f'arguments = {arguments}\n')
                 fid.write(f'error = {logs}{run}.err\n')
                 fid.write(f'output = {logs}{run}.out\n')
