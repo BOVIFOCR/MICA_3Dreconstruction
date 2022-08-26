@@ -3,7 +3,8 @@
 pretrained_model_path: '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/data/pretrained/mica.tar'
 
 dataset:
-  root: '/scratch/NFC/MICA/dataset/'
+  # root: '/scratch/NFC/MICA/dataset/'
+  root: '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/dataset/'
   training_data: [ 'LYHM', 'D3DFACS', 'BU3DFE', 'FRGC', 'Stirling', 'FaceWarehouse', 'BP4D' ]
   eval_data: [ 'FLORENCE' ]
   num_workers: 4

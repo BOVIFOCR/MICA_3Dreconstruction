@@ -26,8 +26,33 @@ from jobs import train
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 
+
+# BERNARDO
+import socket
+host_name = socket.gethostname()
+
+
 if __name__ == '__main__':
     from configs.config import parse_args
+
+    # BERNARDO
+    print('Running on \'' + host_name + '\' machine...')
+
+    if len(sys.argv) < 2:
+        if host_name == 'OptiPlex-3080':
+            sys.argv.append('--cfg')
+            sys.argv.append('/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/configs/mica_OptiPlex-3080.yml')
+            sys.argv.append('--test_dataset')
+            sys.argv.append('NOW')
+            sys.argv.append('--checkpoint')
+            sys.argv.append('')
+        elif host_name == 'duo':
+            sys.argv.append('--cfg')
+            sys.argv.append('/home/bjgbiesseck/GitHub/MICA/configs/mica_duo.yml')
+            sys.argv.append('--test_dataset')
+            sys.argv.append('NOW')
+            sys.argv.append('--checkpoint')
+            sys.argv.append('')
 
     cfg, args = parse_args()
 
@@ -39,6 +64,9 @@ if __name__ == '__main__':
     cudnn.deterministic = True
     torch.cuda.empty_cache()
     num_gpus = torch.cuda.device_count()
+
+    # BERNARDO
+    print('train.py: num_gpus:', num_gpus)
 
     mp.spawn(train, args=(num_gpus, cfg), nprocs=num_gpus, join=True)
 
