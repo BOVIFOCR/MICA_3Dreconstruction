@@ -1,4 +1,4 @@
-name: MICA
+name: bjgbiesseck_MICA
 channels:
   - pytorch3d-nightly
   - pytorch
@@ -227,4 +227,5 @@ dependencies:
     - wcwidth==0.2.5
     - werkzeug==2.1.2
     - zipp==3.8.0
-prefix: /home/wzielonka/miniconda3/envs/MICA
+    
+# prefix: /home/wzielonka/miniconda3/envs/MICA
