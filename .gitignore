@@ -75,3 +75,7 @@ testing/stirling/jobs
 demo/input*
 demo/arcface*
 demo/output*
+
+# BERNARDO
+datasets*
+models*
