@@ -26,8 +26,9 @@ from jobs import train
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 
-
 # BERNARDO
+import numpy as np
+import random
 import socket
 host_name = socket.gethostname()
 
@@ -65,9 +66,21 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     num_gpus = torch.cuda.device_count()
 
+    # BERNARDO (from 'https://github.com/pytorch/pytorch/issues/45042#issuecomment-701115885' - on 29 Sep 2020)
+    seed = 440
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.enabled = True
+    torch.backends.cudnn.benchmark = True
+
     # BERNARDO
+    # print('train.py: num_gpus:', num_gpus, '   cfg:', cfg)
     print('train.py: num_gpus:', num_gpus)
 
-    mp.spawn(train, args=(num_gpus, cfg), nprocs=num_gpus, join=True)
+    # mp.spawn(train, args=(num_gpus, cfg), nprocs=num_gpus, join=True)   # Original
+    mp.spawn(train, args=(num_gpus, cfg), nprocs=1, join=True)   # BERNARDO
+    # train(rank=num_gpus, world_size=num_gpus, cfg=cfg)
 
     exit(0)

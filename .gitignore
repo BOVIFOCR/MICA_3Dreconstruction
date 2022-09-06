@@ -67,5 +67,11 @@ testing/now/logs
 testing/stirling/logs
 testing/stirling/jobs
 
-demo/arcface
-demo/output
+# ORIGINAL
+# demo/arcface
+# demo/output
+
+# BERNARDO
+demo/input*
+demo/arcface* 
+demo/output*

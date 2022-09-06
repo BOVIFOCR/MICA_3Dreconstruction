@@ -34,10 +34,24 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.'))
 
 
 def setup(rank, world_size, port):
+    # BERNARDO
+    print('jobs.py: train(): setup(): rank=', rank, ', world_size=', world_size, ', port=', port)
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = str(port)
-    dist.init_process_group("nccl", rank=rank, world_size=world_size, init_method="env://")
 
+    # BERNARDO
+    print('torch.cuda.is_available()=', torch.cuda.is_available())
+    print('torch.version.cuda=', torch.version.cuda)
+    print('torch.distributed.is_available()=', torch.distributed.is_available())
+
+    # BERNARDO
+    print('jobs.py: train(): setup(): running \'dist.init_process_group()\'...')
+    dist.init_process_group("nccl", rank=rank, world_size=world_size, init_method="env://")   # Original
+    # dist.init_process_group("gloo", rank=rank, world_size=world_size, init_method="env://")     # Bernardo
+    # dist.init_process_group("nccl", rank=rank, world_size=world_size)  # Bernardo
+
+    # BERNARDO
+    print('jobs.py: train(): setup(): \'setup()\' function has finished!')
 
 def deterministic(rank):
     torch.manual_seed(rank)
@@ -71,9 +85,21 @@ def test(rank, world_size, cfg, args):
 
 
 def train(rank, world_size, cfg):
-    port = np.random.randint(low=0, high=2000)
-    setup(rank, world_size, 12310 + port)
 
+    # BERNARDO
+    print('jobs.py: started \'train(rank=', rank, ', world_size=', world_size, ', cfg=', cfg, ')\' function...')
+
+    # BERNARDO
+    print('jobs.py: train(): running \'port = np.random.randint()\'...')
+    port = np.random.randint(low=0, high=2000)
+
+    # BERNARDO
+    print('jobs.py: train(): running \'setup(rank=', rank, ', world_size=', world_size, ', port=', 12310+port, ')\'...')
+    setup(rank, world_size, 12310 + port)
+    print('jobs.py: train(): function \'setup()\' has finished!')
+
+    # BERNARDO
+    print('jobs.py: train(): running \'logger.info()\'...')
     logger.info(f'[MAIN] output_dir: {cfg.output_dir}')
     os.makedirs(os.path.join(cfg.output_dir, cfg.train.log_dir), exist_ok=True)
     os.makedirs(os.path.join(cfg.output_dir, cfg.train.vis_dir), exist_ok=True)
@@ -85,8 +111,13 @@ def train(rank, world_size, cfg):
 
     deterministic(rank)
 
+    # BERNARDO
+    print('jobs.py: train(): running \'nfc = util.find_model_using_name()\'...')
     nfc = util.find_model_using_name(model_dir='micalib.models', model_name=cfg.model.name)(cfg, rank)
     trainer = Trainer(nfc_model=nfc, config=cfg, device=rank)
+
+    # BERNARDO
+    print('jobs.py: train(): running \'trainer.fit()\'...')
     trainer.fit()
 
     dist.destroy_process_group()

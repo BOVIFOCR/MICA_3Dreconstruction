@@ -44,19 +44,25 @@ cfg.model.layers = 8
 cfg.model.hidden_layers_size = 256
 cfg.model.mapping_layers = 3
 cfg.model.use_pretrained = True
-cfg.model.arcface_pretrained_model = '/scratch/is-rg-ncs/models_weights/arcface-torch/backbone100.pth'
+# cfg.model.arcface_pretrained_model = '/scratch/is-rg-ncs/models_weights/arcface-torch/backbone100.pth'   # Original
+# cfg.model.arcface_pretrained_model = '/home/bjgbiesseck/GitHub/MICA/models/models_weights/arcface-torch/backbone.pth'   # BERNARDO
+cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/backbone.pth')       # BERNARDO
+# print('configs/config.py: cfg.model.arcface_pretrained_model=', cfg.model.arcface_pretrained_model)   # BERNARDO
+
 
 # ---------------------------------------------------------------------------- #
 # Options for Dataset
 # ---------------------------------------------------------------------------- #
 cfg.dataset = CN()
-cfg.dataset.training_data = ['LYHM']
+# cfg.dataset.training_data = ['LYHM']  # Original
+cfg.dataset.training_data = ['NOW']     # BERNARDO
 cfg.dataset.eval_data = ['FLORENCE']
 cfg.dataset.batch_size = 2
 cfg.dataset.K = 4
 cfg.dataset.n_train = 100000
 cfg.dataset.num_workers = 4
-cfg.dataset.root = '/datasets/MICA/'
+# cfg.dataset.root = '/home/bjgbiesseck/GitHub/MICA/datasets/MICA/'
+cfg.dataset.root = os.path.join(cfg.mica_dir, 'datasets/MICA/')    # BERNARDO
 
 # ---------------------------------------------------------------------------- #
 # Mask weights
