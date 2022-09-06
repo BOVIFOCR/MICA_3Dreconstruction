@@ -67,11 +67,11 @@ testing/now/logs
 testing/stirling/logs
 testing/stirling/jobs
 
-# ORIGINAL
+# original
 # demo/arcface
 # demo/output
 
 # BERNARDO
 demo/input*
-demo/arcface* 
+demo/arcface*
 demo/output*
