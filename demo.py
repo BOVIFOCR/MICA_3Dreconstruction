@@ -83,8 +83,8 @@ def process_BERNARDO(args, app, image_size=224):
     dst = Path(args.a)
     dst.mkdir(parents=True, exist_ok=True)
     processes = []
-    # image_paths = sorted(glob(args.i + '/*.*'))   # original
-    image_paths = sorted(glob(args.i + '/*.jpg'))   # BERNARDO
+    # image_paths = sorted(glob(args.i + '/*.*'))                                     # original
+    image_paths = sorted(glob(args.i + '/*.jpg')) + sorted(glob(args.i + '/*.png'))   # BERNARDO
     for image_path in tqdm(image_paths):
         name = Path(image_path).stem
         img = cv2.imread(image_path)
