@@ -75,7 +75,7 @@ def process(args, app, image_size=224):
         processes.append(file + '.npy')
 
     return processes
-'''
+''' 
 
 
 # BERNARDO
