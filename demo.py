@@ -135,23 +135,19 @@ def load_checkpoint(args, mica):
 
 # BERNARDO
 class Tree:
-    def __init__(self):
-        # prefix components:
-        self.space = '    '
-        self.branch = '│   '
-        # pointers:
-        self.tee = '├── '
-        self.last = '└── '
-
-    def walk(self, dir_path: Path, output_path=''):
+    def walk(self, dir_path: Path):
         contents = list(dir_path.iterdir())
-        pointers = [self.tee] * (len(contents) - 1) + [self.last]
-        for pointer, path in zip(pointers, contents):
+        for path in contents:
             if path.is_dir():  # extend the prefix and recurse:
                 yield str(path)
-                output_path_dir = output_path + '/' + path.name
-                # Path(output_path_dir).mkdir(parents=True, exist_ok=True)
-                yield from self.walk(path, output_path_dir)
+                yield from self.walk(path)
+
+    def get_all_sub_folders(self, dir_path: str):
+        folders = [dir_path]
+        for folder in Tree().walk(Path.home() / dir_path):
+            # print(folder)
+            folders.append(folder)
+        return folders
 
 
 
@@ -174,11 +170,9 @@ def main(cfg, args):
         logger.info(f'Processing has started...')
 
         # LIST ALL DIRS (BERNARDO)
-        subfolders = [args.i]
-        for subfolder in Tree().walk(Path('.') / args.i, args.o):
-            subfolders.append(subfolder)
+        sub_folders = Tree().get_all_sub_folders(args.i)
 
-        for args.i in subfolders:
+        for args.i in sub_folders:
             args.a = args.i.replace('input', 'arcface')
             args.o = args.i.replace('input', 'output')
 
