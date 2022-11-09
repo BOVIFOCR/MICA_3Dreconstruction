@@ -211,7 +211,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MICA - Towards Metrical Reconstruction of Human Faces')
     # parser.add_argument('-i', default='demo/input', type=str, help='Input folder with images')  # original
     # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')    # BERNARDO
-    parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')    # BERNARDO
+    # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')    # BERNARDO
+    parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')    # BERNARDO
     parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
     parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
     parser.add_argument('-m', default='data/pretrained/mica.tar', type=str, help='Pretrained model path')
