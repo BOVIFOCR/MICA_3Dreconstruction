@@ -110,9 +110,9 @@ def process_BERNARDO(args, app, image_size=224):
 
 
 def to_batch(path):
-    src = path.replace('npy', 'jpg')
+    src = path.replace('.npy', '.jpg')
     if not os.path.exists(src):
-        src = path.replace('npy', 'png')
+        src = path.replace('.npy', '.png')
 
     image = imread(src)[:, :, :3]
     image = image / 255.
@@ -147,7 +147,7 @@ class Tree:
         for folder in Tree().walk(Path(os.getcwd()) / dir_path):
             # print(folder)
             folders.append(folder)
-        return folders
+        return sorted(folders)
 
 
 
@@ -171,15 +171,43 @@ def main(cfg, args):
 
         # LIST ALL DIRS (BERNARDO)
         sub_folders = Tree().get_all_sub_folders(args.i)
+        begin_index = 0
+        end_index = len(sub_folders)
 
-        for args.i in sub_folders:
+        if args.str_begin != '':
+            print('Searching str_begin \'' + args.str_begin + '\' ...  ')
+            for x, sub_folder in enumerate(sub_folders):
+                if args.str_begin in sub_folder:
+                    begin_index = x
+                    print('found at', begin_index)
+                    break
+            
+        if args.str_end != '':
+            print('Searching str_end \'' + args.str_end + '\' ...  ')
+            for x, sub_folder in enumerate(sub_folders):
+                if args.str_end in sub_folder:
+                    end_index = x+1
+                    print('found at', begin_index)
+                    break
+        
+        print('\n------------------------')
+        print('begin_index:', begin_index)
+        print('end_index:', end_index)
+        print('------------------------\n')
+
+        for args.i in sub_folders[begin_index:end_index]:
             args.a = args.i.replace('input', 'arcface')
             args.o = args.i.replace('input', 'output')
+
+            # Bernardo
+            print('input:', args.i)
+            print('arcface:', args.a)
 
             # paths = process(args, app)   # original
             paths = process_BERNARDO(args, app)   # BERNARDO
 
             for path in tqdm(paths):
+                print('path:', path)
                 name = Path(path).stem
                 images, arcface = to_batch(path)
                 codedict = mica.encode(images, arcface)
@@ -203,8 +231,11 @@ def main(cfg, args):
                 np.save(f'{dst}/identity', code[0].cpu().numpy())
                 np.save(f'{dst}/kpt7', landmark_7.cpu().numpy() * 1000.0)
                 np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
-
+            
             logger.info(f'Processing finished. Results has been saved in {args.o}')
+            print('------------------------------')
+            
+
 
 
 if __name__ == '__main__':
@@ -212,10 +243,15 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input', type=str, help='Input folder with images')  # original
     # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')    # BERNARDO
     # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')    # BERNARDO
-    parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')    # BERNARDO
+    # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')    # BERNARDO
+    parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')    # BERNARDO
+    
     parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
     parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
     parser.add_argument('-m', default='data/pretrained/mica.tar', type=str, help='Pretrained model path')
+
+    parser.add_argument('-str_begin', default='', type=str, help='Substring to find and start processing')
+    parser.add_argument('-str_end', default='', type=str, help='Substring to find and stop processing')
 
     args = parser.parse_args()
     cfg = get_cfg_defaults()
