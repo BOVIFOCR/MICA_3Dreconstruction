@@ -48,36 +48,6 @@ def deterministic(rank):
     cudnn.benchmark = False
 
 
-'''
-# ORIGINAL
-def process(args, app, image_size=224):
-    dst = Path(args.a)
-    dst.mkdir(parents=True, exist_ok=True)
-    processes = []
-    image_paths = sorted(glob(args.i + '/*.*'))
-    for image_path in tqdm(image_paths):
-        name = Path(image_path).stem
-        img = cv2.imread(image_path)
-        bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')
-        if bboxes.shape[0] == 0:
-            continue
-        i = get_center(bboxes, img)
-        bbox = bboxes[i, 0:4]
-        det_score = bboxes[i, 4]
-        kps = None
-        if kpss is not None:
-            kps = kpss[i]
-        face = Face(bbox=bbox, kps=kps, det_score=det_score)
-        blob, aimg = get_arcface_input(face, img)
-        file = str(Path(dst, name))
-        np.save(file, blob)
-        cv2.imwrite(file + '.jpg', face_align.norm_crop(img, landmark=face.kps, image_size=image_size))
-        processes.append(file + '.npy')
-
-    return processes
-''' 
-
-
 # BERNARDO
 def process_BERNARDO(args, app, image_size=224):
     dst = Path(args.a)
@@ -145,7 +115,7 @@ class Tree:
     def get_all_sub_folders(self, dir_path: str):
         folders = [dir_path]
         for folder in Tree().walk(Path(os.getcwd()) / dir_path):
-            # print(folder)
+            print(folder)
             folders.append(folder)
         return sorted(folders)
 
@@ -170,6 +140,7 @@ def main(cfg, args):
         logger.info(f'Processing has started...')
 
         # LIST ALL DIRS (BERNARDO)
+        print('Loading folders names...')
         sub_folders = Tree().get_all_sub_folders(args.i)
         begin_index = 0
         end_index = len(sub_folders)
@@ -181,7 +152,7 @@ def main(cfg, args):
                     begin_index = x
                     print('found at', begin_index)
                     break
-            
+
         if args.str_end != '':
             print('Searching str_end \'' + args.str_end + '\' ...  ')
             for x, sub_folder in enumerate(sub_folders):
@@ -189,7 +160,7 @@ def main(cfg, args):
                     end_index = x+1
                     print('found at', begin_index)
                     break
-        
+
         print('\n------------------------')
         print('begin_index:', begin_index)
         print('end_index:', end_index)
@@ -231,21 +202,21 @@ def main(cfg, args):
                 np.save(f'{dst}/identity', code[0].cpu().numpy())
                 np.save(f'{dst}/kpt7', landmark_7.cpu().numpy() * 1000.0)
                 np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
-            
+
             logger.info(f'Processing finished. Results has been saved in {args.o}')
             print('------------------------------')
-            
 
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MICA - Towards Metrical Reconstruction of Human Faces')
-    # parser.add_argument('-i', default='demo/input', type=str, help='Input folder with images')  # original
-    # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')    # BERNARDO
-    # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')    # BERNARDO
-    # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')    # BERNARDO
-    parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')    # BERNARDO
-    
+    # parser.add_argument('-i', default='demo/input', type=str, help='Input folder with images')                                                # original
+    # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')                                          # BERNARDO
+    # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')                                            # BERNARDO
+    # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')                    # BERNARDO
+    parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')            # BERNARDO
+    # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced', type=str, help='Input folder with images')  # BERNARDO
+
     parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
     parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
     parser.add_argument('-m', default='data/pretrained/mica.tar', type=str, help='Pretrained model path')
