@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 from glob import glob
 
-os.environ["CUDA_VISIBLE_DEVICES"]='-1'   # cpu
+# os.environ["CUDA_VISIBLE_DEVICES"]='-1' # cpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'  # gpu
 # os.environ["CUDA_VISIBLE_DEVICES"]='1'  # gpu
 
@@ -186,8 +186,8 @@ def main_centralize_nosetip_with_normals(args):
         pc_path = pc_paths[i]
         kp_path = kp_paths[i]
 
-        print(str(i) + '/' + str(len(pc_paths)) + ' - pc_path:', pc_path)
-        print(str(i) + '/' + str(len(kp_paths)) + ' - kp_path:', kp_path)
+        print(str(i+1) + '/' + str(len(pc_paths)) + ' - pc_path:', pc_path)
+        print(str(i+1) + '/' + str(len(kp_paths)) + ' - kp_path:', kp_path)
 
         ptcloud, _ = load_point_cloud(pc_path)
         kpt68 = load_keypoints(kp_path)
@@ -226,7 +226,10 @@ if __name__ == '__main__':
 
     if not '-dataset_path' in sys.argv:
         # sys.argv += ['-dataset_path', '/home/bjgbiesseck/GitHub/MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images']
-        sys.argv += ['-dataset_path', '/home/bjgbiesseck/GitHub/MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced']
+        # sys.argv += ['-dataset_path', '/home/bjgbiesseck/GitHub/MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced']
+        # sys.argv += ['-dataset_path', '/experiments/BOVIFOCR_project/datasets/faces/3D_reconstruction_MICA/output/MS-Celeb-1M/ms1m-retinaface-t1/images_1000subj']
+        # sys.argv += ['-dataset_path', '/experiments/BOVIFOCR_project/datasets/faces/3D_reconstruction_MICA/output/MS-Celeb-1M/ms1m-retinaface-t1/images_2000subj']
+        sys.argv += ['-dataset_path', '/experiments/BOVIFOCR_project/datasets/faces/3D_reconstruction_MICA/output/MS-Celeb-1M/ms1m-retinaface-t1/images_5000subj']
 
     sys.argv += ['-dir_level', '2']
 
