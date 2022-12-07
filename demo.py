@@ -115,7 +115,7 @@ class Tree:
     def get_all_sub_folders(self, dir_path: str):
         folders = [dir_path]
         for folder in Tree().walk(Path(os.getcwd()) / dir_path):
-            print(folder)
+            # print(folder)
             folders.append(folder)
         return sorted(folders)
 
