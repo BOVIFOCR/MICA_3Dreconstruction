@@ -21,7 +21,8 @@ from pathlib import Path
 
 from pytorch3d.io import load_objs_as_meshes
 
-from datasets.creation.instances.instance import Instance
+# from datasets.creation.instances.instance import Instance   # original
+from instances.instance import Instance                       # Bernardo
 
 
 class Stirling(Instance, ABC):

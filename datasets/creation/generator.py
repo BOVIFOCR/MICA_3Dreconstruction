@@ -14,7 +14,7 @@
 #
 # Contact: mica@tue.mpg.de
 
-
+import sys
 import os
 from glob import glob
 from multiprocessing import Pool
@@ -29,8 +29,11 @@ from insightface.utils import face_align
 from loguru import logger
 from tqdm import tqdm
 
-from datasets.creation.instances.instance import Instance
-from datasets.creation.util import get_image, get_center, get_arcface_input
+# from datasets.creation.instances.instance import Instance                    # Original
+# from datasets.creation.util import get_image, get_center, get_arcface_input  # Original
+
+from instances.instance import Instance                    # BERNARDO
+from util import get_image, get_center, get_arcface_input  # BERNARDO
 
 
 def _transfer(src, dst):
@@ -50,7 +53,7 @@ def _copy(payload):
 class Generator:
     def __init__(self, instances):
         self.instances: List[Instance] = instances
-        self.ARCFACE = 'arcface_input'
+        self.ARCFACE = '_arcface_input'
 
     def copy(self):
         logger.info('Start copying...')
@@ -70,10 +73,29 @@ class Generator:
         app.prepare(ctx_id=0, det_size=(224, 224))
 
         logger.info('Start arcface...')
-        for instance in tqdm(self.instances):
-            src = instance.get_dst()
-            for image_path in tqdm(sorted(glob(f'{src}/images/*/*'))):
-                dst = image_path.replace('images', self.ARCFACE)
+
+        # for instance in tqdm(self.instances):   # original
+        for instance in self.instances:           # Bernardo
+            
+            # src = instance.get_dst()         # original
+            src = instance.get_src()           # Bernardo
+            img_ext = instance.get_img_ext()   # Bernardo
+            image_paths = sorted(glob(f'{src}*{img_ext}'))
+
+            tqdm.write('src: ' + src)
+            tqdm.write('path: ' + f'{src}*')
+            # tqdm.write('image_paths:' + str(image_paths))
+
+            # for image_path in tqdm(sorted(glob(f'{src}/images/*/*'))):  # original
+            for image_path in image_paths:                                # Bernardo
+                tqdm.write('image_path: ' + str(image_path))              # Bernardo
+                
+                # dst = image_path.replace('images', self.ARCFACE)        # original
+                dst = image_path.replace(img_ext, self.ARCFACE+'.jpg')   # original
+                assert src != dst                                         # Bernardo
+                
+                tqdm.write('dst: ' + str(dst))                            # Bernardo
+                
                 Path(dst).parent.mkdir(exist_ok=True, parents=True)
                 for img in instance.transform_image(get_image(image_path[0:-4])):
                     bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')

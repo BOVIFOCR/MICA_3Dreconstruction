@@ -40,18 +40,11 @@ if __name__ == '__main__':
     print('Running on \'' + host_name + '\' machine...')
 
     if len(sys.argv) < 2:
-        if host_name == 'OptiPlex-3080':
+        if host_name == 'duo':
             sys.argv.append('--cfg')
-            sys.argv.append('/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/configs/mica_OptiPlex-3080.yml')
+            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/mica_duo.yml')
             sys.argv.append('--test_dataset')
-            sys.argv.append('NOW')
-            sys.argv.append('--checkpoint')
-            sys.argv.append('')
-        elif host_name == 'duo':
-            sys.argv.append('--cfg')
-            sys.argv.append('/home/bjgbiesseck/GitHub/MICA/configs/mica_duo.yml')
-            sys.argv.append('--test_dataset')
-            sys.argv.append('NOW')
+            sys.argv.append('STIRLING')
             sys.argv.append('--checkpoint')
             sys.argv.append('')
 

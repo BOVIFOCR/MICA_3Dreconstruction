@@ -18,6 +18,8 @@
 import numpy as np
 import torch
 
+'''
+# Original
 from datasets.creation.generator import Generator
 from datasets.creation.instances.bu3dfe import BU3DFE
 from datasets.creation.instances.d3dfacs import D3DFACS
@@ -27,13 +29,34 @@ from datasets.creation.instances.frgc import FRGC
 from datasets.creation.instances.lyhm import LYHM
 from datasets.creation.instances.pb4d import PB4D
 from datasets.creation.instances.stirling import Stirling
+'''
+
+# BERNARDO
+from generator import Generator
+from instances.bu3dfe import BU3DFE
+from instances.d3dfacs import D3DFACS
+from instances.facewarehouse import FaceWarehouse
+from instances.florence import Florence
+from instances.frgc import FRGC
+from instances.lyhm import LYHM
+from instances.pb4d import PB4D
+from instances.stirling import Stirling
+
+
 
 np.random.seed(42)
 
 if __name__ == '__main__':
     torch.multiprocessing.set_start_method('spawn')
 
-    datasets = [FaceWarehouse(), LYHM(), D3DFACS(), FRGC(), Florence(), Stirling(), BU3DFE(), PB4D()]
-    generator = Generator([FaceWarehouse()])
+    # datasets = [FaceWarehouse(), LYHM(), D3DFACS(), FRGC(), Florence(), Stirling(), BU3DFE(), PB4D()]  # original
+    # generator = Generator([FaceWarehouse()])                                                           # original
 
+    # datasets = [FaceWarehouse(), LYHM(), FRGC(), Florence(), Stirling(), BU3DFE()]   # Bernardo
+    # generator = Generator([FaceWarehouse()])                                         # Bernardo
+
+    datasets = [FaceWarehouse(), LYHM(), FRGC(), Florence(), Stirling(), BU3DFE()]   # Bernardo
+    generator = Generator([FRGC()])                                                  # Bernardo
+
+    # print('generator.run()')
     generator.run()

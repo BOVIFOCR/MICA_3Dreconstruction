@@ -19,7 +19,8 @@ from abc import ABC
 from glob import glob
 from pathlib import Path
 
-from datasets.creation.instances.instance import Instance
+# from datasets.creation.instances.instance import Instance   # original
+from instances.instance import Instance                       # Bernardo
 
 
 class D3DFACS(Instance, ABC):

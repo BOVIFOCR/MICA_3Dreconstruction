@@ -21,7 +21,8 @@ from pathlib import Path
 
 import numpy as np
 
-from datasets.creation.instances.instance import Instance
+# from datasets.creation.instances.instance import Instance   # original
+from instances.instance import Instance                       # Bernardo
 
 
 class Florence(Instance, ABC):

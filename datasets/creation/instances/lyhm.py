@@ -25,7 +25,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 from pytorch3d.io import load_objs_as_meshes
 from pytorch3d.transforms import RotateAxisAngle
 
-from datasets.creation.instances.instance import Instance
+# from datasets.creation.instances.instance import Instance   # original
+from instances.instance import Instance                       # Bernardo
 
 
 class LYHM(Instance, ABC):

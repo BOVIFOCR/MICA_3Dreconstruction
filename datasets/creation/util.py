@@ -47,7 +47,8 @@ def get_arcface_input(face, img):
 
 def get_image(name, to_rgb=False):
     images_dir = osp.join(Path(__file__).parent.absolute(), '../images')
-    ext_names = ['.jpg', '.png', '.jpeg']
+    # ext_names = ['.jpg', '.png', '.jpeg']         # original
+    ext_names = ['.jpg', '.png', '.jpeg', '.ppm']   # Bernardo
     image_file = None
     for ext_name in ext_names:
         _image_file = osp.join(images_dir, "%s%s" % (name, ext_name))

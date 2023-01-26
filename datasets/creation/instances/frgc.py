@@ -22,19 +22,28 @@ from pathlib import Path
 import numpy as np
 from pytorch3d.io import load_objs_as_meshes
 
-from datasets.creation.instances.instance import Instance
+# from datasets.creation.instances.instance import Instance   # original
+from instances.instance import Instance                       # Bernardo
 
 
 class FRGC(Instance, ABC):
     def __init__(self):
         super(FRGC, self).__init__()
-        self.dst = '/scratch/NFC/OnFlame/FRGC/'
-        self.src = '/scratch/NFC/FRGC_v2/'
+        # self.dst = '/scratch/NFC/OnFlame/FRGC/'   # original
+        # self.src = '/scratch/NFC/FRGC_v2/'        # original
+        self.dst = '/FRGCv2.0/FRGC-2.0-dist/nd1/OnFlame/'            # Bernardo
+        self.src = '/FRGCv2.0/FRGC-2.0-dist/nd1/Spring2003range/'    # Bernardo
+        self.img_ext = '.ppm'
 
     def get_images(self):
         images = {}
         for actor in sorted(glob(self.get_src() + 'images/*')):
-            imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'/{actor}/*/*.jpg')))
+            # imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'/{actor}/*/*.jpg')))   # original
+            imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'*.ppm')))                # Bernardo
+
+            # TESTE
+            print('FRGC(): get_images(): imgs:', imgs)
+
             images[Path(actor).name] = imgs
 
         return images
