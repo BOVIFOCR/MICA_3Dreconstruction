@@ -26,13 +26,17 @@ from instances.instance import Instance                       # Bernardo
 class FaceWarehouse(Instance, ABC):
     def __init__(self):
         super(FaceWarehouse, self).__init__()
-        self.dst = '/scratch/NFC/OnFlame/FACEWAREHOUSE/'
-        self.src = '/scratch/NFC/FaceWarehouse/'
+        # self.dst = '/scratch/NFC/OnFlame/FACEWAREHOUSE/'            # original
+        # self.src = '/scratch/NFC/FaceWarehouse/'                    # original
+        self.dst = '/FaceWarehouse/OnFlame/'                          # Bernardo
+        self.src = '/FaceWarehouse/FaceWarehouse_Data_0.part1/*/*/'   # Bernardo
+        self.img_ext = '.png'
 
     def get_images(self):
         images = {}
         for actor in sorted(glob(self.get_src() + 'Images/*')):
-            images[Path(actor).stem] = glob(f'{actor}/*.png')
+            # images[Path(actor).stem] = glob(f'{actor}/*.png')   original
+            images[Path(actor).stem] = glob(f'{actor}/*{self.img_ext}')
 
         return images
 

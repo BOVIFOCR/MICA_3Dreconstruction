@@ -31,9 +31,8 @@ from tqdm import tqdm
 
 # from datasets.creation.instances.instance import Instance                    # Original
 # from datasets.creation.util import get_image, get_center, get_arcface_input  # Original
-
-from instances.instance import Instance                    # BERNARDO
-from util import get_image, get_center, get_arcface_input  # BERNARDO
+from instances.instance import Instance                                        # BERNARDO
+from util import get_image, get_center, get_arcface_input                      # BERNARDO
 
 
 def _transfer(src, dst):
@@ -77,9 +76,9 @@ class Generator:
         # for instance in tqdm(self.instances):   # original
         for instance in self.instances:           # Bernardo
             
-            # src = instance.get_dst()         # original
-            src = instance.get_src()           # Bernardo
-            img_ext = instance.get_img_ext()   # Bernardo
+            # src = instance.get_dst()            # original
+            src = instance.get_src()              # Bernardo
+            img_ext = instance.get_img_ext()      # Bernardo
             image_paths = sorted(glob(f'{src}*{img_ext}'))
 
             tqdm.write('src: ' + src)
@@ -90,11 +89,12 @@ class Generator:
             for image_path in image_paths:                                # Bernardo
                 tqdm.write('image_path: ' + str(image_path))              # Bernardo
                 
-                # dst = image_path.replace('images', self.ARCFACE)        # original
-                dst = image_path.replace(img_ext, self.ARCFACE+'.jpg')   # original
-                assert src != dst                                         # Bernardo
+                # dst = image_path.replace('images', self.ARCFACE)                           # original
+                # dst = image_path.replace(img_ext, self.ARCFACE+'.jpg')                     # Bernardo
+                dst = image_path.replace('.' + img_ext.split('.')[-1], self.ARCFACE+'.jpg')  # Bernardo
+                assert src != dst                                                            # Bernardo
                 
-                tqdm.write('dst: ' + str(dst))                            # Bernardo
+                tqdm.write('dst: ' + str(dst))                                               # Bernardo
                 
                 Path(dst).parent.mkdir(exist_ok=True, parents=True)
                 for img in instance.transform_image(get_image(image_path[0:-4])):

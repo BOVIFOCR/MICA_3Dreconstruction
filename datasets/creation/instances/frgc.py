@@ -39,7 +39,7 @@ class FRGC(Instance, ABC):
         images = {}
         for actor in sorted(glob(self.get_src() + 'images/*')):
             # imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'/{actor}/*/*.jpg')))   # original
-            imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'*.ppm')))                # Bernardo
+            imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'*{self.img_ext}')))                # Bernardo
 
             # TESTE
             print('FRGC(): get_images(): imgs:', imgs)

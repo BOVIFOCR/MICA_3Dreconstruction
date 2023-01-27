@@ -28,8 +28,11 @@ from instances.instance import Instance                       # Bernardo
 class Stirling(Instance, ABC):
     def __init__(self):
         super(Stirling, self).__init__()
-        self.dst = '/scratch/NFC/OnFlame/STIRLING/'
-        self.src = '/scratch/NFC/Stirling/'
+        # self.dst = '/scratch/NFC/OnFlame/STIRLING/'   # original
+        # self.src = '/scratch/NFC/Stirling/'           # original
+        self.dst = '/Stirling-ESRC_3D/OnFlame/'         # Bernardo
+        self.src = '/Stirling-ESRC_3D/M_3D_N/'          # Bernardo
+        self.img_ext = '.jpg'                           # Bernardo
 
     def get_min_det_score(self):
         return 0.75
