@@ -31,7 +31,15 @@ def build_train(config, device):
             dataset_name, n_train = dataset
             config.n_train = n_train
 
+        # # Bernardo
+        # print('dataset_name:', dataset_name)
+        # print('dataset (ANTES):', dataset)
+
         dataset = BaseDataset(name=dataset_name, config=config, device=device, isEval=False)
+
+        # # Bernardo
+        # print('dataset (DEPOIS):', dataset)
+
         data_list.append(dataset)
         total_images += dataset.total_images
 

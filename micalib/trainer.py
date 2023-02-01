@@ -184,7 +184,8 @@ class Trainer(object):
             num_workers=self.cfg.dataset.num_workers,
             shuffle=True,
             pin_memory=True,
-            drop_last=False,
+            # drop_last=False,    # original
+            drop_last=True,       # Bernardo  -  Ignore last batch when it contains less samples than batch_size (https://discuss.pytorch.org/t/error-expected-more-than-1-value-per-channel-when-training/26274/2)
             worker_init_fn=seed_worker,
             generator=generator)
 
@@ -197,9 +198,12 @@ class Trainer(object):
         max_epochs = int(self.cfg.train.max_steps / iters_every_epoch)
         start_epoch = self.epoch
         for epoch in range(start_epoch, max_epochs):
+            # print('trainer.py: Trainer: fit(): epoch:', epoch, '    iters_every_epoch:', iters_every_epoch)
             for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{epoch + 1}/{max_epochs}]"):
-                if self.global_step > self.cfg.train.max_steps:
-                    break
+                # print('    step:', step, '    self.global_step:', self.global_step, '    self.cfg.train.max_steps:', self.cfg.train.max_steps)
+                
+                # if self.global_step > self.cfg.train.max_steps:   # Original (commented by Bernardo)
+                #     break                                         # Original (commented by Bernardo) 
                 try:
                     batch = next(self.train_iter)
                 except Exception as e:
@@ -279,7 +283,7 @@ class Trainer(object):
 
                 if self.global_step % self.cfg.train.checkpoint_epochs_steps == 0:
                     self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model_' + str(self.global_step) + '.tar'))
-
+                
             self.epoch += 1
 
         self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model' + '.tar'))

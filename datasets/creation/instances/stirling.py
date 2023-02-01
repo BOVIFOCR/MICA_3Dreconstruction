@@ -30,16 +30,18 @@ class Stirling(Instance, ABC):
         super(Stirling, self).__init__()
         # self.dst = '/scratch/NFC/OnFlame/STIRLING/'   # original
         # self.src = '/scratch/NFC/Stirling/'           # original
-        self.dst = '/Stirling-ESRC_3D/OnFlame/'         # Bernardo
-        self.src = '/Stirling-ESRC_3D/M_3D_N/'          # Bernardo
-        self.img_ext = '.jpg'                           # Bernardo
+        self.dst = '/MICA/OnFlame/STIRLING/'            # Bernardo
+        self.src = '/MICA/STIRLING/'                    # Bernardo
+        # self.img_ext = '.jpg'                         # Bernardo
 
     def get_min_det_score(self):
-        return 0.75
+        # return 0.75    # original
+        return 0.55    # original
 
     def get_images(self):
         images = {}
-        for file in sorted(glob(self.get_src() + 'images/Real_images__Subset_2D_FG2018/HQ/*')):
+        # for file in sorted(glob(self.get_src() + 'images/Real_images__Subset_2D_FG2018/HQ/*')):    # original
+        for file in sorted(glob(self.get_src() + 'images/Subset_2D_FG2018/HQ/*')):                   # Bernardo
             actor = Path(file).stem.split('_')[0].upper()
             if actor not in images:
                 images[actor] = []
@@ -49,7 +51,8 @@ class Stirling(Instance, ABC):
 
     def get_flame_params(self):
         prams = {}
-        for file in sorted(glob(self.get_src() + 'FLAME_parameters/iter1/*/*.npz')):
+        # for file in sorted(glob(self.get_src() + 'FLAME_parameters/iter1/*/*.npz')):     # original
+        for file in sorted(glob(self.get_src() + 'FLAME_parameters/*/*.npz')):             # Bernardo
             actor = Path(file).stem[0:5].upper()
             prams[Path(actor).name] = [file]
 
@@ -57,7 +60,8 @@ class Stirling(Instance, ABC):
 
     def get_registrations(self):
         registrations = {}
-        for file in sorted(glob(self.get_src() + 'registrations/iter1/*/*')):
+        # for file in sorted(glob(self.get_src() + 'registrations/iter1/*/*')):     # original
+        for file in sorted(glob(self.get_src() + 'registrations/*/*')):       # Bernardo
             if 'obj' not in file:
                 continue
             actor = Path(file).stem[0:5].upper()

@@ -26,7 +26,7 @@ class Instance:
     def __init__(self):
         # self.mount = '/home/wzielonka/Cluster/lustre'  # original
         # self.mount = '/home/bjgbiesseck/datasets'      # Bernardo
-        self.mount = '/datasets1/bjgbiesseck'           # Bernardo
+        self.mount = '/datasets1/bjgbiesseck'            # Bernardo
         
         self.dst = 'empty'
         self.src = 'empty'
@@ -40,8 +40,8 @@ class Instance:
     def get_src(self):
         return self.src if not self.use_mount else self.mount + self.src
 
-    def get_img_ext(self):
-        return self.img_ext
+    # def get_img_ext(self):
+    #     return self.img_ext
 
     @abstractmethod
     def get_min_det_score(self):

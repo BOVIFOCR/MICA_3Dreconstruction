@@ -17,6 +17,7 @@
 
 import argparse
 import os
+import sys
 
 from yacs.config import CfgNode as CN
 
@@ -25,7 +26,8 @@ cfg = CN()
 abs_mica_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 cfg.mica_dir = abs_mica_dir
 cfg.device = 'cuda'
-cfg.device_id = '0'
+cfg.device_id = '0'   # original
+# cfg.device_id = '1'     # Bernardo
 cfg.pretrained_model_path = os.path.join(cfg.mica_dir, 'data/pretrained', 'mica.tar')
 cfg.output_dir = ''
 
@@ -45,9 +47,10 @@ cfg.model.hidden_layers_size = 256
 cfg.model.mapping_layers = 3
 cfg.model.use_pretrained = True
 # cfg.model.arcface_pretrained_model = '/scratch/is-rg-ncs/models_weights/arcface-torch/backbone100.pth'   # Original
-# cfg.model.arcface_pretrained_model = '/home/bjgbiesseck/GitHub/MICA/models/models_weights/arcface-torch/backbone.pth'   # BERNARDO
-cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/backbone.pth')       # BERNARDO
-# print('configs/config.py: cfg.model.arcface_pretrained_model=', cfg.model.arcface_pretrained_model)   # BERNARDO
+# cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/ms1mv3_arcface_r50_fp16/backbone.pth')  # BERNARDO
+cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/ms1mv3_arcface_r100_fp16/backbone.pth')   # BERNARDO
+# print('configs/config.py: cfg.model.arcface_pretrained_model=', cfg.model.arcface_pretrained_model)                     # BERNARDO
+# sys.exit(0)
 
 
 # ---------------------------------------------------------------------------- #
@@ -55,14 +58,16 @@ cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_w
 # ---------------------------------------------------------------------------- #
 cfg.dataset = CN()
 # cfg.dataset.training_data = ['LYHM']  # Original
-cfg.dataset.training_data = ['NOW']     # BERNARDO
-cfg.dataset.eval_data = ['FLORENCE']
+cfg.dataset.training_data = ['FRGC']     # BERNARDO
+# cfg.dataset.eval_data = ['FLORENCE']  # original
+cfg.dataset.eval_data = ['FACEWAREHOUSE']    # Bernardo
 cfg.dataset.batch_size = 2
 cfg.dataset.K = 4
 cfg.dataset.n_train = 100000
 cfg.dataset.num_workers = 4
-# cfg.dataset.root = '/home/bjgbiesseck/GitHub/MICA/datasets/MICA/'
-cfg.dataset.root = os.path.join(cfg.mica_dir, 'datasets/MICA/')    # BERNARDO
+# cfg.dataset.root = '/home/bjgbiesseck/GitHub/MICA/datasets/MICA/'  # BERNARDO
+cfg.dataset.root = '/datasets1/bjgbiesseck/MICA/'                    # BERNARDO
+
 
 # ---------------------------------------------------------------------------- #
 # Mask weights

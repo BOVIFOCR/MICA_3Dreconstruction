@@ -43,7 +43,8 @@ class BaseDataset(Dataset, ABC):
         self.cluster = False
         self.dataset_root = config.root
         self.total_images = 0
-        self.image_folder = 'arcface_input'
+        # self.image_folder = 'arcface_input'    # original
+        self.image_folder = '_arcface_input'     # Bernardo
         self.flame_folder = 'FLAME_parameters'
         self.initialize()
 
@@ -80,19 +81,29 @@ class BaseDataset(Dataset, ABC):
         return len(self.imagepaths)
 
     def __getitem__(self, index):
+        # print('__getitem__(): self.imagepaths:', self.imagepaths)
         actor = self.imagepaths[index]
+        # print('__getitem__(): actor:', actor)
         images, params_path = self.face_dict[actor]
+        # print('__getitem__(): images (ANTES):', images)
+        # print('__getitem__(): params_path:', params_path)
         images = [Path(self.dataset_root, self.name, self.image_folder, path) for path in images]
+        # print('__getitem__(): images (DEPOIS):', images)
         sample_list = np.array(np.random.choice(range(len(images)), size=self.K, replace=False))
+        # print('__getitem__(): sample_list:', sample_list)
 
         K = self.K
         if self.isEval:
             K = max(0, min(200, self.min_max_K))
             sample_list = np.array(range(len(images))[:K])
 
+        # print('params_path (JOIN):', os.path.join(self.dataset_root, self.name, self.flame_folder, params_path))
         params = np.load(os.path.join(self.dataset_root, self.name, self.flame_folder, params_path), allow_pickle=True)
+        # print('params:', params)
         pose = torch.tensor(params['pose']).float()
         betas = torch.tensor(params['betas']).float()
+        # print('pose:', pose)
+        # print('betas:', betas)
 
         flame = {
             'shape_params': torch.cat(K * [betas[:300][None]], dim=0),
@@ -105,6 +116,7 @@ class BaseDataset(Dataset, ABC):
 
         for i in sample_list:
             image_path = images[i]
+            # print('i:', i, '    for i in sample_list: image_path:', image_path)
             image = np.array(imread(image_path))
             image = image / 255.
             image = image.transpose(2, 0, 1)

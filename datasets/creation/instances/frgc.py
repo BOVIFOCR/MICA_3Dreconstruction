@@ -14,7 +14,7 @@
 #
 # Contact: mica@tue.mpg.de
 
-
+import sys                  # Bernardo
 from abc import ABC
 from glob import glob
 from pathlib import Path
@@ -31,18 +31,23 @@ class FRGC(Instance, ABC):
         super(FRGC, self).__init__()
         # self.dst = '/scratch/NFC/OnFlame/FRGC/'   # original
         # self.src = '/scratch/NFC/FRGC_v2/'        # original
-        self.dst = '/FRGCv2.0/FRGC-2.0-dist/nd1/OnFlame/'            # Bernardo
-        self.src = '/FRGCv2.0/FRGC-2.0-dist/nd1/Spring2003range/'    # Bernardo
-        self.img_ext = '.ppm'
+        self.dst = '/MICA/OnFlame/FRGC/'            # Bernardo
+        self.src = '/MICA/FRGC/'                    # Bernardo
+        # self.img_ext = '.ppm'
 
     def get_images(self):
+        # BERNARDO
+        print('\nFRGC: get_images()')
+
         images = {}
         for actor in sorted(glob(self.get_src() + 'images/*')):
-            # imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'/{actor}/*/*.jpg')))   # original
-            imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'*{self.img_ext}')))                # Bernardo
+            imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'/{actor}/*/*.jpg')))   # original
+            # imgs = list(filter(lambda f: 'Spring2003range' not in f, glob(f'*{self.img_ext}')))      # Bernardo
 
             # TESTE
             print('FRGC(): get_images(): imgs:', imgs)
+            # tqdm.write('FRGC(): get_images(): imgs:', imgs)
+            # sys.exit(0)
 
             images[Path(actor).name] = imgs
 
