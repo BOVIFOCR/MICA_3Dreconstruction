@@ -52,14 +52,11 @@ if __name__ == '__main__':
     # datasets = [FaceWarehouse(), LYHM(), D3DFACS(), FRGC(), Florence(), Stirling(), BU3DFE(), PB4D()]  # original
     # generator = Generator([FaceWarehouse()])                                                           # original
 
-    # datasets = [FaceWarehouse(), LYHM(), FRGC(), Florence(), Stirling()]   # Bernardo
-    # generator = Generator([FaceWarehouse()])                               # Bernardo
-
     datasets = [FaceWarehouse(), LYHM(), FRGC(), Florence(), Stirling()]    # Bernardo
     # generator = Generator([FRGC()])                                       # Bernardo
     # generator = Generator([FaceWarehouse()])                              # Bernardo
-    generator = Generator([Stirling()])                                     # Bernardo
-    # generator = Generator([LYHM()])                                       # Bernardo
+    # generator = Generator([Stirling()])                                   # Bernardo
+    generator = Generator([LYHM()])                                       # NOT IMPLEMENTED YET
     # generator = Generator([Florence()])                                   # NOT IMPLEMENTED YET
 
     # print('generator.run()')

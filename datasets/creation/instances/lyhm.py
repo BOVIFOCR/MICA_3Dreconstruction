@@ -34,15 +34,15 @@ class LYHM(Instance, ABC):
         super(LYHM, self).__init__()
         # self.dst = '/scratch/NFC/MICA/LYHM/'
         # self.src = '/scratch/NFC/LYHM/'
-        self.dst = '/LYHM/headspacePngTka/OnFlame'
-        self.src = '/LYHM/headspacePngTka/*/*/*/'
-        self.img_ext = '1C.png'
+        self.dst = '/MICA/OnFlame/LYHM/'
+        self.src = '/MICA/LYHM/'
+        # self.img_ext = '1C.png'
 
     def get_images(self):
         images = {}
         for actor in sorted(glob(self.get_src() + '/*')):
-            # images[Path(actor).name] = glob(f'/{actor}/*.png')            # original
-            images[Path(actor).name] = glob(f'/{actor}/*{self.img_ext}')    # Bernardo
+            images[Path(actor).name] = glob(f'/{actor}/*.png')                # original
+            # images[Path(actor).name] = glob(f'/{actor}/*{self.img_ext}')    # Bernardo
 
         return images
 
