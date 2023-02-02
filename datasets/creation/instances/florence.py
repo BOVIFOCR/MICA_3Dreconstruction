@@ -28,8 +28,10 @@ from instances.instance import Instance                       # Bernardo
 class Florence(Instance, ABC):
     def __init__(self):
         super(Florence, self).__init__()
-        self.dst = '/scratch/NFC/OnFlame/FLORENCE/'
-        self.src = '/scratch/NFC/MICC_Florence/'
+        # self.dst = '/scratch/NFC/OnFlame/FLORENCE/'
+        # self.src = '/scratch/NFC/MICC_Florence/'
+        self.dst = '/MICA/OnFlame/FLORENCE/'
+        self.src = '/MICA/FLORENCE/'
 
     def get_min_det_score(self):
         return 0.85
@@ -37,10 +39,15 @@ class Florence(Instance, ABC):
     def get_images(self):
         images = {}
         for actor in sorted(glob(self.get_src() + 'images/*')):
-            imgs = sorted(list(filter(lambda f: 'PTZ-Outdoor' not in f, glob(f'{actor}/*/*.jpg'))))
-            indecies = np.random.choice(len(imgs), 1000, replace=False)
+            # imgs = sorted(list(filter(lambda f: 'PTZ-Outdoor' not in f, glob(f'{actor}/*/*.jpg'))))   # original
+            imgs = sorted(glob(f'{actor}/*.jpg'))                                                       # Bernardo
+            
+            # indecies = np.random.choice(len(imgs), 1000, replace=False)       # original
+            indecies = np.arange(len(imgs))                                     # Bernardo
+            
             images[Path(actor).stem] = [imgs[i] for i in indecies]
-
+            
+        #print('\nimages:', images)    # Bernardo
         return images
 
     def get_flame_params(self):

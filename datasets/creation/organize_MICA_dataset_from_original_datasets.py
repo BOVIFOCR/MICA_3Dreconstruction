@@ -28,7 +28,8 @@ class DatasetOrganizer:
         self.subpath_registrations = self.output_dataset_name + '/' + self.dataset_name + '/registrations'
         self.subpath_output_images = self.output_dataset_name + '/' + self.dataset_name + '/images'
 
-        self.path_original_images  = self.path_parent_dir + '/' + self.dataset_name + '/' + self.subpath_input_dir
+        # self.path_original_images  = self.path_parent_dir + '/' + self.dataset_name + '/' + self.subpath_input_dir
+        self.path_original_images  = self.path_parent_dir + '/' + self.subpath_input_dir
         self.path_flame_parameters = self.path_parent_dir + '/' + self.subpath_flame_parameters
         self.path_registrations    = self.path_parent_dir + '/' + self.subpath_registrations
         self.path_output_images    = self.path_parent_dir + '/' + self.subpath_output_images
@@ -172,6 +173,114 @@ class DatasetOrganizer_LYHM(DatasetOrganizer):
 
 
 
+class DatasetOrganizer_Florence(DatasetOrganizer):
+    def __init__(self, path_parent_dir='/datasets1/bjgbiesseck', output_dataset_name='MICA'):
+        # self.path_parent_dir = path_parent_dir
+        super().__init__(path_parent_dir, output_dataset_name)
+        self.dataset_name = 'FLORENCE'
+        self.subpath_input_dir = 'FlorenceFace/Original'
+        # self.input_file_ext = ['.mjpg']
+        self.input_file_ext = ['Indoor-Cooperative.mjpg', 'Indoor-Cooperative.mjpeg', 'Indoor-Cooperative.mpg']
+        # self.subpath_output_images = output_dataset_name + '/' + self.dataset_name + '/' + 'images'
+        self.concat_paths()
+    
+    def count_total_frames_manual(self, path_video=''):
+        video = cv2.VideoCapture(path_video)
+        count = 0
+        while True:
+            (hasNext, frame) = video.read()
+            if not hasNext:
+                break
+            # print('frame:', frame[0,0])
+            count += 1
+            # print('count:', count)
+        return count
+
+    # overrides superclass method
+    def organize(self):
+        import cv2
+        paths_dict = self.load_image_paths_from_npy(self.path_npy_paths_mica)
+        subj_names = sorted(list(paths_dict.keys()))
+        # print('paths_dict:', paths_dict)
+        # print('subj_names:', subj_names)
+
+        for i, subj in enumerate(subj_names):
+            # if int(subj.split('_')[-1]) > 47:
+            output_imgs = sorted(paths_dict[subj][0])    # ['subject_53/frame_1141.jpg', 'subject_53/frame_0967.jpg', etc]
+            input_npz =   paths_dict[subj][1]            # ''subject_53/110616114712.npz'
+            # print('output_imgs:', output_imgs)
+            # print('input_npz:', input_npz)
+            # input('PAUSED')
+            
+            for input_file in self.input_file_ext:
+                file_name_to_search = input_file
+                # target_frame_num = int(out_img.split('/')[-1].split('_')[-1].split('.')[0])
+
+                pattern_file_to_search = self.path_original_images + '/' + subj + '/**/*' + file_name_to_search
+                print('subj:', subj, '('+str(i+1)+'/'+str(len(subj_names))+'    file_name_to_search:', file_name_to_search)
+                print('    pattern_file_to_search:', pattern_file_to_search)
+                
+                found_file = glob.glob(pattern_file_to_search, recursive=True)
+                found_file = [f for f in found_file if self.is_found_file_valid(subj, f)]                  # Check if path contains subject name
+                found_file = [f for ext in self.input_file_ext for f in found_file if f.endswith(ext)]     # Check extension of found files
+
+                if len(found_file) > 0:
+                    break
+            
+            if len(found_file) == 0:
+                print('Error, file not found:', file_name_to_search)
+                sys.exit(0)
+            elif len(found_file) > 1:
+                print('Error, multiple files found:', found_file)
+                sys.exit(0)
+            found_file = found_file[0]
+            # print('    found_file:', '\''+found_file+'\'')
+            # input('PAUSED')
+            # sys.exit(0)
+
+            num_total_frames_video = self.count_total_frames_manual(found_file)
+            video_reader = cv2.VideoCapture(found_file)
+            count_frame = 0
+
+            # COPY IMAGES
+            for j, out_img in enumerate(output_imgs):
+                output_file = self.path_output_images + '/' + out_img
+                target_frame_num = int(out_img.split('/')[-1].split('_')[-1].split('.')[0])
+                print('subj:', subj, '('+str(i+1)+'/'+str(len(subj_names))+')    out_img:', out_img, '    file_name_to_search:', file_name_to_search, '('+str(j+1)+'/'+str(len(output_imgs))+')')
+                print('    pattern_file_to_search:', pattern_file_to_search)
+                print('    found_file:', '\''+found_file+'\'')
+                print('    target_frame_num:', target_frame_num, '    num_total_frames_video:', num_total_frames_video)
+                print('    output_file:', output_file)
+                assert output_file != found_file
+
+                print('    Searching frame...')
+                while True:
+                    (hasNext, frame) = video_reader.read()
+                                            
+                    count_frame += 1
+                    # print('    count_frame:', count_frame)
+
+                    if count_frame == target_frame_num:
+                        os.makedirs('/'.join(output_file.split('/')[:-1]), exist_ok=True)
+                        print('    saving frame:', output_file)
+                        cv2.imwrite(output_file, frame)
+                        break
+                    
+                    if not hasNext:
+                        break
+                    
+
+                if not os.path.exists(output_file):
+                    print('Error, file not copied:', output_file)
+                    sys.exit(0)
+
+                # sys.exit(0)
+                # input('PAUSED')
+                print('-----------------')
+
+            # sys.exit(0)
+
+
 np.random.seed(42)
 
 if __name__ == '__main__':
@@ -182,8 +291,8 @@ if __name__ == '__main__':
     # dataset_org = DatasetOrganizer_FRGCv2(path_parent_dir, output_dataset_name)
     # dataset_org = DatasetOrganizer_Stirling(path_parent_dir, output_dataset_name)
     # dataset_org = DatasetOrganizer_FaceWarehouse(path_parent_dir, output_dataset_name)
-    dataset_org = DatasetOrganizer_LYHM(path_parent_dir, output_dataset_name)
-    # dataset_org = DatasetOrganizer_Florence(path_parent_dir, output_dataset_name)        # TODO
+    # dataset_org = DatasetOrganizer_LYHM(path_parent_dir, output_dataset_name)
+    dataset_org = DatasetOrganizer_Florence(path_parent_dir, output_dataset_name)
 
     # dataset_org.print_folder_paths()
     dataset_org.organize()

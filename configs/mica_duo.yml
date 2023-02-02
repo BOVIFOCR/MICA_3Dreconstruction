@@ -8,7 +8,7 @@ dataset:
 
   # training_data: [ 'LYHM', 'D3DFACS', 'BU3DFE', 'FRGC', 'Stirling', 'FaceWarehouse', 'BP4D' ]    # original
   # training_data: [ 'FRGC', 'Stirling' ]         # BERNARDO
-  training_data: [ 'FRGC', 'Stirling', 'LYHM' ]   # BERNARDO
+  training_data: [ 'FRGC', 'Stirling', 'LYHM', 'FLORENCE' ]   # BERNARDO
 
   # eval_data: [ 'FLORENCE' ]      # original
   eval_data: [ 'FACEWAREHOUSE' ]   # Bernardo
