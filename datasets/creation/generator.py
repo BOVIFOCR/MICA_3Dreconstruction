@@ -125,7 +125,7 @@ class Generator:
                     np.save(dst[0:-4], blob)
                     cv2.imwrite(dst, face_align.norm_crop(img, landmark=face.kps, image_size=224))
 
-                input('PAUSED')   # Bernardo
+                # input('PAUSED')   # Bernardo
                 # sys.exit(0)       # Bernardo
 
 

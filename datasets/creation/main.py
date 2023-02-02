@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # generator = Generator([FRGC()])                                       # Bernardo
     # generator = Generator([FaceWarehouse()])                              # Bernardo
     # generator = Generator([Stirling()])                                   # Bernardo
-    generator = Generator([LYHM()])                                       # NOT IMPLEMENTED YET
+    generator = Generator([LYHM()])                                         # Bernardo
     # generator = Generator([Florence()])                                   # NOT IMPLEMENTED YET
 
     # print('generator.run()')

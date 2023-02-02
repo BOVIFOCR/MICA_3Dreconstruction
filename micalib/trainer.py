@@ -195,10 +195,15 @@ class Trainer(object):
     def fit(self):
         self.prepare_data()
         iters_every_epoch = int(len(self.train_dataset) / self.batch_size)
-        max_epochs = int(self.cfg.train.max_steps / iters_every_epoch)
-        start_epoch = self.epoch
+        
+        # max_epochs = int(self.cfg.train.max_steps / iters_every_epoch)   # original
+        # start_epoch = self.epoch                                         # original
+        max_epochs = int(self.cfg.train.max_steps / (self.batch_size * 10))     # Bernardo
+        start_epoch = 0                                                    # Bernardo
+        
+        # print('trainer.py: Trainer: fit(): start_epoch:', start_epoch, '    max_epochs:', max_epochs)   # Bernardo
         for epoch in range(start_epoch, max_epochs):
-            # print('trainer.py: Trainer: fit(): epoch:', epoch, '    iters_every_epoch:', iters_every_epoch)
+            # print('trainer.py: Trainer: fit(): epoch:', epoch, '    iters_every_epoch:', iters_every_epoch)   # Bernardo
             for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{epoch + 1}/{max_epochs}]"):
                 # print('    step:', step, '    self.global_step:', self.global_step, '    self.cfg.train.max_steps:', self.cfg.train.max_steps)
                 
