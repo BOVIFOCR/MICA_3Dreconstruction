@@ -34,7 +34,8 @@ class Florence(Instance, ABC):
         self.src = '/MICA/FLORENCE/'
 
     def get_min_det_score(self):
-        return 0.85
+        # return 0.85
+        return 0.55
 
     def get_images(self):
         images = {}
