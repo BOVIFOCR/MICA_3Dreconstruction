@@ -15,13 +15,20 @@ dataset:
   # eval_data: [ 'FACEWAREHOUSE' ]   # Bernardo
   eval_data: [ 'Stirling' ]      # Bernardo
 
-  # num_workers: 4    # original
-  num_workers: 1      # BERNARDO
+  num_workers: 4    # original
+  # num_workers: 1      # BERNARDO
 
   batch_size: 8
 
   # K: 2    # original
   K: 1      # BERNARDO
+
+# Bernardo
+# output_dir_annotation: '_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100'
+# output_dir_annotation: '_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedCOSFACE=glint360k-r100'
+output_dir_annotation: '_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedCOSFACE=glint360k-r100'
+
+
 
 train:
   lr: 1e-5
@@ -38,6 +45,7 @@ train:
   checkpoint_epochs_steps: 10000
 
 model:
-  use_pretrained: False
+  use_pretrained: False   # original
+  # use_pretrained: True      # Bernardo
   n_shape: 300
   name: 'mica'

@@ -30,6 +30,7 @@ cfg.device_id = '0'   # original
 # cfg.device_id = '1'     # Bernardo
 cfg.pretrained_model_path = os.path.join(cfg.mica_dir, 'data/pretrained', 'mica.tar')
 cfg.output_dir = ''
+cfg.output_dir_annotation = ''
 
 # ---------------------------------------------------------------------------- #
 # Options for Face model
@@ -48,7 +49,8 @@ cfg.model.mapping_layers = 3
 cfg.model.use_pretrained = True
 # cfg.model.arcface_pretrained_model = '/scratch/is-rg-ncs/models_weights/arcface-torch/backbone100.pth'   # Original
 # cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/ms1mv3_arcface_r50_fp16/backbone.pth')  # BERNARDO
-cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/ms1mv3_arcface_r100_fp16/backbone.pth')   # BERNARDO
+#cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/ms1mv3_arcface_r100_fp16/backbone.pth')   # BERNARDO
+cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/glint360k_cosface_r100_fp16_0.1/backbone.pth')   # BERNARDO
 # print('configs/config.py: cfg.model.arcface_pretrained_model=', cfg.model.arcface_pretrained_model)                     # BERNARDO
 # sys.exit(0)
 

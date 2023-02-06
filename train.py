@@ -52,7 +52,8 @@ if __name__ == '__main__':
 
     if cfg.cfg_file is not None:
         exp_name = cfg.cfg_file.split('/')[-1].split('.')[0]
-        cfg.output_dir = os.path.join('./output', exp_name)
+        # cfg.output_dir = os.path.join('./output', exp_name)                             # original
+        cfg.output_dir = os.path.join('./output', exp_name) + cfg.output_dir_annotation   # Bernardo
 
     cudnn.benchmark = False
     cudnn.deterministic = True
