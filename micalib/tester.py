@@ -37,11 +37,14 @@ from utils import util
 input_mean = 127.5
 input_std = 127.5
 
-NOW_SCANS = '/home/wzielonka/datasets/NoWDataset/final_release_version/scans/'
-NOW_PICTURES = '/home/wzielonka/datasets/NoWDataset/final_release_version/iphone_pictures/'
-NOW_BBOX = '/home/wzielonka/datasets/NoWDataset/final_release_version/detected_face/'
-STIRLING_PICTURES = '/home/wzielonka/datasets/Stirling/images/'
-
+# NOW_SCANS = '/home/wzielonka/datasets/NoWDataset/final_release_version/scans/'                # original
+# NOW_PICTURES = '/home/wzielonka/datasets/NoWDataset/final_release_version/iphone_pictures/'   # original
+# NOW_BBOX = '/home/wzielonka/datasets/NoWDataset/final_release_version/detected_face/'         # original
+# STIRLING_PICTURES = '/home/wzielonka/datasets/Stirling/images/'                               # original
+NOW_SCANS = '/datasets1/bjgbiesseck/NoWDataset/NoW_Dataset/final_release_version/scans/'                  # Bernardo
+NOW_PICTURES = '/datasets1/bjgbiesseck/NoWDataset/NoW_Dataset/final_release_version/iphone_pictures/'     # Bernardo
+NOW_BBOX = '/datasets1/bjgbiesseck/NoWDataset/NoW_Dataset/final_release_version/detected_face/'           # Bernardo
+STIRLING_PICTURES = '/datasets1/bjgbiesseck/Stirling/images/'                                             # Bernardo
 
 class Tester(object):
     def __init__(self, nfc_model, config=None, device=None):

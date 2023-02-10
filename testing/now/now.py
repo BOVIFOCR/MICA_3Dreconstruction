@@ -20,25 +20,18 @@ import time
 from glob import glob
 from shutil import copyfile
 
-# ORIGINAL
-# logs = '/home/wzielonka/projects/MICA/testing/now/logs/'
-# jobs = '/home/wzielonka/projects/MICA/testing/now/jobs/'
-# root = '/home/wzielonka/projects/MICA/output/'
+# logs = '/home/wzielonka/projects/MICA/testing/now/logs/'   # original
+# jobs = '/home/wzielonka/projects/MICA/testing/now/jobs/'   # original
+# root = '/home/wzielonka/projects/MICA/output/'             # original
+logs = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/logs/'     # Bernardo
+jobs = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/jobs/'     # Bernardo
+root = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/'               # Bernardo
 
-# BERNARDO
-import socket
-host_name = socket.gethostname()
-global host_name
-if host_name == 'OptiPlex-3080':
-    logs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/logs/'
-    jobs = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/jobs/'
-    root = '/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/output/'
-elif host_name == 'duo':
-    logs = '/home/bjgbiesseck/GitHub/MICA/testing/now/logs/'
-    jobs = '/home/bjgbiesseck/GitHub/MICA/testing/now/jobs/'
-    root = '/home/bjgbiesseck/GitHub/MICA/output/'
-
-experiments = []
+# experiments = []   # original
+# experiments = ['4_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100']   # Bernardo
+# experiments = ['5_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedCOSFACE=glint360k-r100']   # Bernardo
+# experiments = ['6_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100']   # Bernardo
+experiments = ['7_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedCOSFACE=glint360k-r100']   # Bernardo
 
 
 def test():
@@ -49,12 +42,20 @@ def test():
         print('BERNARDO: creating dir \'' + root + '\' ... ', end='')
         os.mkdir(root)
         print(' done!')
+    if not os.path.exists(logs):
+        print('BERNARDO: creating dir \'' + logs + '\' ... ', end='')
+        os.mkdir(logs)
+        print(' done!')
+    if not os.path.exists(logs):
+        print('BERNARDO: creating dir \'' + jobs + '\' ... ', end='')
+        os.mkdir(jobs)
+        print(' done!')
 
     if len(experiments) == 0:
         experiments = list(filter(lambda f: 'condor' not in f, os.listdir('../../output/')))
 
-    os.system('rm -rf logs')
-    os.system('rm -rf jobs')
+    # os.system('rm -rf logs')
+    # os.system('rm -rf jobs')
 
     os.makedirs('logs', exist_ok=True)
     os.makedirs('jobs', exist_ok=True)
@@ -67,16 +68,17 @@ def test():
             model_name = model_name.replace('best_model_', 'now_test_')
             predicted_meshes = f'{root}{experiment}/{model_name}/predicted_meshes/'
             run = f'{experiment}_{str(idx).zfill(5)}'
+
+            # Bernardo
+            print('model_name:', model_name)
+            print('predicted_meshes:', predicted_meshes)
+            print('run:', run)
+
             with open(f'{jobs}/{run}.sub', 'w') as fid:
                 fid.write('executable = /bin/bash\n')
 
                 # arguments = f'/home/wzielonka/projects/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'    # original
-
-                # BERNARDO
-                if host_name == 'OptiPlex-3080':
-                    arguments = f'/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'   # BERNARDO
-                elif host_name == 'duo':
-                    arguments = f'/home/bjgbiesseck/GitHub/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'  # BERNARDO
+                arguments = f'/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'      # BERNARDO
 
                 fid.write(f'arguments = {arguments}\n')
                 fid.write(f'error = {logs}{run}.err\n')
@@ -88,7 +90,9 @@ def test():
                 fid.write(f'request_memory = 8192\n')
                 fid.write(f'queue\n')
 
-            os.system(f'condor_submit_bid 512 {jobs}/{run}.sub')
+            # os.system(f'condor_submit_bid 512 {jobs}/{run}.sub')   # original
+            # os.system(f'condor_submit {jobs}/{run}.sub')             # Bernardo
+            os.system(f'/bin/bash {arguments}')
 
             time.sleep(2)
 

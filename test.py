@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # BERNARDO
     if len(sys.argv) < 2:
         sys.argv.append('--cfg')
-        sys.argv.append('/media/biesseck/DATA/BernardoBiesseck/BOVIFOCR_project/GitHub/MICA/configs/mica_Bernardo.yml')
+        sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/mica_duo.yml')
         sys.argv.append('--test_dataset')
         sys.argv.append('NOW')
 
