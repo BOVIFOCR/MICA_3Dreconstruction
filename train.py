@@ -44,7 +44,7 @@ if __name__ == '__main__':
             sys.argv.append('--cfg')
             sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/mica_duo.yml')
             sys.argv.append('--test_dataset')
-            sys.argv.append('FACEWAREHOUSE')
+            sys.argv.append('STIRLING')
             sys.argv.append('--checkpoint')
             sys.argv.append('')
 
