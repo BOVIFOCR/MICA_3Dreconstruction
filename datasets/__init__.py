@@ -19,6 +19,49 @@ import numpy as np
 from torch.utils.data import ConcatDataset
 
 from datasets.base import BaseDataset
+from datasets.base_multitask_facerecognition import BaseDataset_MultitaskFaceRecognition
+
+
+# Bernardo
+def build_train_multitask_facerecognition(config, device):
+    data_list = []
+    total_images = 0
+    for dataset in config.training_data:
+        dataset_name = dataset.upper()
+        config.n_train = np.Inf
+        if type(dataset) is list:
+            dataset_name, n_train = dataset
+            config.n_train = n_train
+
+        # dataset = BaseDataset(name=dataset_name, config=config, device=device, isEval=False)
+        dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=False)    # Bernardo
+
+        data_list.append(dataset)
+        total_images += dataset.total_images
+
+    return ConcatDataset(data_list), total_images
+
+
+# Bernardo
+def build_val_multitask_facerecognition(config, device):
+    data_list = []
+    total_images = 0
+    for dataset in config.eval_data:
+        dataset_name = dataset.upper()
+        config.n_train = np.Inf
+        if type(dataset) is list:
+            dataset_name, n_train = dataset
+            config.n_train = n_train
+
+        # dataset = BaseDataset(name=dataset_name, config=config, device=device, isEval=True)
+        dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=True)    # Bernardo
+
+        data_list.append(dataset)
+        total_images += dataset.total_images
+
+    return ConcatDataset(data_list), total_images
+
+
 
 
 def build_train(config, device):
@@ -31,14 +74,7 @@ def build_train(config, device):
             dataset_name, n_train = dataset
             config.n_train = n_train
 
-        # # Bernardo
-        # print('dataset_name:', dataset_name)
-        # print('dataset (ANTES):', dataset)
-
         dataset = BaseDataset(name=dataset_name, config=config, device=device, isEval=False)
-
-        # # Bernardo
-        # print('dataset (DEPOIS):', dataset)
 
         data_list.append(dataset)
         total_images += dataset.total_images
