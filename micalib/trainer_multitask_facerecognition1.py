@@ -106,8 +106,11 @@ class TrainerMultitaskFacerecognition1(object):
             model_path = self.cfg.pretrained_model_path
         if os.path.exists(model_path):
             checkpoint = torch.load(model_path, map_location)
-            if 'opt' in checkpoint:
-                self.opt.load_state_dict(checkpoint['opt'])
+
+            # COMMENTED BY BERNARDO DUE BECAUSE ORIGINAL MODEL DOESN'T HAVE FACE CLASSIFICATION LAYERS
+            # if 'opt' in checkpoint:
+            #     self.opt.load_state_dict(checkpoint['opt'])
+            
             if 'scheduler' in checkpoint:
                 self.scheduler.load_state_dict(checkpoint['scheduler'])
             if 'epoch' in checkpoint:
@@ -173,13 +176,13 @@ class TrainerMultitaskFacerecognition1(object):
         # Bernardo
         imagename = batch['imagename']
         encoder_output['imagename'] = imagename
-        # print('training_step() - imagename:', imagename)
+        # print('training_step - imagename:', imagename)
         imagelabel = self.get_imagelabel_from_imagename(imagename)
-        # print('training_step() - imagelabel:', imagelabel)
+        # print('training_step - imagelabel:', imagelabel)
         # y_true = batch['y_true'].to(self.device)
         # y_true = self.get_onehotvector_from_imagelabel1(imagelabel, len(list(self.labels_map.keys())))
         y_true = self.get_onehotvector_from_imagelabel2(imagelabel, len(list(self.labels_map.keys()))).to(self.device)
-        # print('training_step() - y_true:', y_true)
+        # print('training_step - y_true:', y_true)
         encoder_output['y_true'] = y_true
 
         decoder_output = self.nfc.decode(encoder_output, self.epoch)
@@ -357,8 +360,9 @@ class TrainerMultitaskFacerecognition1(object):
                     savepath = os.path.join(self.cfg.output_dir, 'train_images/train_' + str(epoch) + '.jpg')
                     util.visualize_grid(visdict, savepath, size=512)
 
-                if self.global_step % self.cfg.train.val_steps == 0:
-                    self.validation_step()
+                # COMMENTED BY BERNARDO DUE TO UNLABELED VALIDATION DATA
+                # if self.global_step % self.cfg.train.val_steps == 0:
+                #     self.validation_step()
 
                 if self.global_step % self.cfg.train.lr_update_step == 0:
                     self.scheduler.step()

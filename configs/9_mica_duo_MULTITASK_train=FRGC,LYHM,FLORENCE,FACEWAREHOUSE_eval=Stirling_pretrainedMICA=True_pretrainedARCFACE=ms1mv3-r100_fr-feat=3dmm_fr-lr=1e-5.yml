@@ -24,12 +24,12 @@ dataset:
   K: 1      # BERNARDO
 
 # Bernardo
-output_dir_annotation: '_MULTITASK_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-lr=1e-3'
+output_dir_annotation: ''
 
 train:
   lr: 1e-5
   arcface_lr: 1e-5
-  face_recog_lr: 1e-3
+  face_recog_lr: 1e-5
   weight_decay: 2e-4
   use_mask: True
   reset_optimizer: False
@@ -42,8 +42,8 @@ train:
   checkpoint_epochs_steps: 10000
 
 model:
-  use_pretrained: False   # original
-  # use_pretrained: True  # Bernardo
+  # use_pretrained: False   # original
+  use_pretrained: True      # Bernardo
   n_shape: 300
   # name: 'mica'          # original
   name: 'micamultitaskfacerecognition1'

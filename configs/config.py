@@ -98,6 +98,7 @@ cfg.train.max_epochs = 50
 cfg.train.max_steps = 100000
 cfg.train.lr = 1e-4
 cfg.train.arcface_lr = 1e-3
+cfg.train.face_recog_lr = 1e-3
 cfg.train.weight_decay = 0.0
 cfg.train.lr_update_step = 100000000
 cfg.train.log_dir = 'logs'

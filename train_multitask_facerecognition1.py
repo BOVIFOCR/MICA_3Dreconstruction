@@ -43,9 +43,14 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         if host_name == 'duo':
             sys.argv.append('--cfg')
-            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/8_mica_duo_MULTITASK_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/8_mica_duo_MULTITASK_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-lr=1e-5.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/8_mica_duo_MULTITASK_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-lr=1e-5.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/9_mica_duo_MULTITASK_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5.yml')
+            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/9_mica_duo_MULTITASK_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5.yml')
+            
             sys.argv.append('--test_dataset')
             sys.argv.append('STIRLING')
+            
             sys.argv.append('--checkpoint')
             sys.argv.append('')
 
@@ -53,8 +58,8 @@ if __name__ == '__main__':
 
     if cfg.cfg_file is not None:
         exp_name = cfg.cfg_file.split('/')[-1].split('.')[0]
-        # cfg.output_dir = os.path.join('./output', exp_name)                             # original
-        cfg.output_dir = os.path.join('./output', exp_name) + cfg.output_dir_annotation   # Bernardo
+        cfg.output_dir = os.path.join('./output', exp_name)                                 # original
+        # cfg.output_dir = os.path.join('./output', exp_name) + cfg.output_dir_annotation   # Bernardo
 
     cudnn.benchmark = False
     cudnn.deterministic = True
