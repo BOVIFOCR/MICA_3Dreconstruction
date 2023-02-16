@@ -18,6 +18,7 @@
 import os
 import random
 import sys
+import shutil
 
 import numpy as np
 import torch
@@ -143,6 +144,7 @@ def train_multitask_facerecognition1(rank, world_size, cfg):
     # BERNARDO
     print('jobs.py: train(): running \'logger.info()\'...')
     logger.info(f'[MAIN] output_dir: {cfg.output_dir}')
+    shutil.rmtree(cfg.output_dir)
     os.makedirs(os.path.join(cfg.output_dir, cfg.train.log_dir), exist_ok=True)
     os.makedirs(os.path.join(cfg.output_dir, cfg.train.vis_dir), exist_ok=True)
     os.makedirs(os.path.join(cfg.output_dir, cfg.train.val_vis_dir), exist_ok=True)
