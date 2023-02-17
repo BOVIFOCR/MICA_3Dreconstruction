@@ -43,12 +43,20 @@ class ValidatorMultitaskFacerecognition1(object):
         # self.tester = Tester(nfc, self.cfg, self.device)
         # self.tester.render_mesh = False
 
+        # Bernardo
+        self.labels_map = {}
+
         self.embeddings_lyhm = {}
         self.best_model = BestModel(trainer)
         self.prepare_data()
 
+    def set_labels_map(self, labels_map):
+        self.labels_map = labels_map
+
     def prepare_data(self):
-        self.val_dataset, total_images = datasets.build_val(self.cfg.dataset, self.device)
+        # self.val_dataset, total_images = datasets.build_val(self.cfg.dataset, self.device)                           # original
+        self.val_dataset, total_images = datasets.build_val_multitask_facerecognition(self.cfg.dataset, self.device)   # Bernardo
+
         self.val_dataloader = DataLoader(
             self.val_dataset,
             batch_size=2,
@@ -106,7 +114,10 @@ class ValidatorMultitaskFacerecognition1(object):
                 codedict['flame'] = flame
 
                 # Bernardo
-                y_true = batch['y_true']
+                imagename = batch['imagename']
+                codedict['imagename'] = imagename
+                imagelabel = datasets.get_imagelabel_from_imagename(imagename, self.labels_map)
+                y_true = datasets.get_onehotvector_from_imagelabel2(imagelabel, len(list(self.labels_map.keys()))).to(self.device)
                 codedict['y_true'] = y_true
 
                 opdict = self.nfc.decode(codedict, self.trainer.epoch)

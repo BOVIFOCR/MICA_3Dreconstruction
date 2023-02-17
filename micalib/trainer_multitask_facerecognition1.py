@@ -136,26 +136,6 @@ class TrainerMultitaskFacerecognition1(object):
 
             torch.save(model_dict, filename)
 
-
-    # Bernardo
-    def get_imagelabel_from_imagename(self, imagename):
-        imagelabel = [None] * len(imagename)
-        for i, name in enumerate(imagename):
-            imagelabel[i] = self.labels_map[name]
-        return np.array(imagelabel)    
-
-    # Bernardo
-    def get_onehotvector_from_imagelabel1(self, imagelabel, num_classes):
-        one_hot_labels = np.eye(num_classes)[imagelabel]
-        return one_hot_labels
-
-    # Bernardo
-    def get_onehotvector_from_imagelabel2(self, imagelabel, num_classes):
-        # one_hot_labels = torch.nn.functional.one_hot(imagelabel, num_classes)
-        one_hot_labels = torch.nn.functional.one_hot(torch.from_numpy(imagelabel), num_classes)
-        return one_hot_labels
-
-
     def training_step(self, batch):
         self.nfc.train()
 
@@ -177,11 +157,11 @@ class TrainerMultitaskFacerecognition1(object):
         imagename = batch['imagename']
         encoder_output['imagename'] = imagename
         # print('training_step - imagename:', imagename)
-        imagelabel = self.get_imagelabel_from_imagename(imagename)
+        imagelabel = datasets.get_imagelabel_from_imagename(imagename, self.labels_map)
         # print('training_step - imagelabel:', imagelabel)
         # y_true = batch['y_true'].to(self.device)
         # y_true = self.get_onehotvector_from_imagelabel1(imagelabel, len(list(self.labels_map.keys())))
-        y_true = self.get_onehotvector_from_imagelabel2(imagelabel, len(list(self.labels_map.keys()))).to(self.device)
+        y_true = datasets.get_onehotvector_from_imagelabel2(imagelabel, len(list(self.labels_map.keys()))).to(self.device)
         # print('training_step - y_true:', y_true)
         encoder_output['y_true'] = y_true
 
@@ -214,33 +194,6 @@ class TrainerMultitaskFacerecognition1(object):
     def evaluation_step(self):
         pass
 
-    # Bernardo
-    def get_all_indexes_in_list(self, value, values_list):
-        indexes = np.where(np.array(values_list) == value)[0]
-        return indexes
-    
-    # Bernardo
-    def make_labels_map(self, datasets):
-        # print('make_labels_map() - datasets:', datasets)
-        i = 0
-        all_actors_name = []
-        for j, dataset in enumerate(datasets):
-            # print('make_labels_map() - j:', j, '    dataset.__dir__():', dataset.__dir__())
-            # print('make_labels_map() - j:', j, '    dataset.face_dict.keys():', list(dataset.face_dict.keys()))
-            actors_name = list(dataset.face_dict.keys())
-            all_actors_name += actors_name
-            for name in actors_name:
-                self.labels_map[name] = i
-                i += 1
-        # print('make_labels_map() - all_actors_name:', all_actors_name)
-        for k, actor_name in enumerate(all_actors_name):
-            indexes = self.get_all_indexes_in_list(actor_name, all_actors_name)
-            # print('make_labels_map() - len(indexes):', len(indexes))
-            if len(indexes) > 1:
-                print('make_labels_map() - ERROR, DUPLICATE ACTOR NAME - actor_name:', actor_name, '    found indexes:', indexes)
-                sys.exit(0)
-        # print('make_labels_map() - self.labels_map:', self.labels_map)
-
     def prepare_data(self):
         generator = torch.Generator()
         generator.manual_seed(self.device)
@@ -249,15 +202,9 @@ class TrainerMultitaskFacerecognition1(object):
         self.train_dataset, total_images = datasets.build_train_multitask_facerecognition(self.cfg.dataset, self.device)    # Bernardo
 
         # Bernardo
-        self.make_labels_map(self.train_dataset.datasets)
-        print('prepare_data() - self.labels_map:', len(list(self.labels_map.keys())))
-
-        # Bernardo
-        # print('prepare_data() - self.train_dataset:', self.train_dataset)
-        # print('prepare_data() - self.train_dataset.__dir__():', self.train_dataset.__dir__())
-        # print('prepare_data() - self.train_dataset.datasets:', self.train_dataset.datasets)
-        # print('prepare_data() - self.train_dataset.datasets[0].__dir__():', self.train_dataset.datasets[0].__dir__())
-        # print('prepare_data() - self.train_dataset.datasets[0].imagepaths:', self.train_dataset.datasets[0].imagepaths)
+        self.labels_map = datasets.get_labels_map(self.train_dataset, self.validator.val_dataset)
+        self.validator.set_labels_map(self.labels_map)
+        print('prepare_data - self.labels_map:', len(list(self.labels_map.keys())), 'actors')
 
         self.train_dataloader = DataLoader(
             self.train_dataset, batch_size=self.batch_size,
@@ -268,11 +215,6 @@ class TrainerMultitaskFacerecognition1(object):
             drop_last=True,       # Bernardo  -  Ignore last batch when it contains less samples than batch_size (https://discuss.pytorch.org/t/error-expected-more-than-1-value-per-channel-when-training/26274/2)
             worker_init_fn=seed_worker,
             generator=generator)
-
-        # Bernardo
-        # print('prepare_data() - self.train_dataloader.__dir__():', self.train_dataloader.__dir__())
-        # print('prepare_data() - self.train_dataloader.dataset.__dir__():', self.train_dataloader.dataset.__dir__())
-        # print('prepare_data() - self.train_dataloader.dataset.datasets.__dir__():', self.train_dataloader.dataset.datasets.__dir__())
 
         self.train_iter = iter(self.train_dataloader)
         logger.info(f'[TRAINER] Training dataset is ready with {len(self.train_dataset)} actors and {total_images} images.')
@@ -360,9 +302,8 @@ class TrainerMultitaskFacerecognition1(object):
                     savepath = os.path.join(self.cfg.output_dir, 'train_images/train_' + str(epoch) + '.jpg')
                     util.visualize_grid(visdict, savepath, size=512)
 
-                # COMMENTED BY BERNARDO DUE TO UNLABELED VALIDATION DATA
-                # if self.global_step % self.cfg.train.val_steps == 0:
-                #     self.validation_step()
+                if self.global_step % self.cfg.train.val_steps == 0:
+                    self.validation_step()
 
                 if self.global_step % self.cfg.train.lr_update_step == 0:
                     self.scheduler.step()
