@@ -28,6 +28,7 @@ import yaml
 from loguru import logger
 
 from micalib.tester import Tester
+from micalib.tester_multitask_facerecognition1 import TesterMultitaskFacerecognition1     # Bernardo
 from micalib.trainer import Trainer
 from micalib.trainer_multitask_facerecognition1 import TrainerMultitaskFacerecognition1   # Bernardo
 from utils import util
@@ -63,6 +64,75 @@ def deterministic(rank):
 
     cudnn.deterministic = True
     cudnn.benchmark = False
+
+
+
+# Bernardo
+def test_multitask_facerecognition1(rank, world_size, cfg, args):
+    port = np.random.randint(low=0, high=2000)
+    setup(rank, world_size, 12310 + port)
+
+    deterministic(rank)
+
+    cfg.model.testing = True
+    mica = util.find_model_using_name(model_dir='micalib.models', model_name=cfg.model.name)(cfg, rank)
+
+    # tester = Tester(nfc_model=mica, config=cfg, device=rank)                          # original
+    tester = TesterMultitaskFacerecognition1(nfc_model=mica, config=cfg, device=rank)   # Bernardo
+
+    tester.render_mesh = True
+
+    if args.test_dataset.upper() == 'STIRLING':
+        tester.test_stirling(args.checkpoint)
+    elif args.test_dataset.upper() == 'NOW':
+        tester.test_now(args.checkpoint)
+    else:
+        logger.error('[TESTER] Test dataset was not specified!')
+
+    dist.destroy_process_group()
+
+# Bernardo
+def train_multitask_facerecognition1(rank, world_size, cfg):
+
+    # BERNARDO
+    print('jobs.py: started \'train_multitask_facerecognition1(rank=', rank, ', world_size=', world_size, ', cfg=', cfg, ')\' function...')
+
+    # BERNARDO
+    print('jobs.py: train_multitask_facerecognition1(): running \'port = np.random.randint()\'...')
+    port = np.random.randint(low=0, high=2000)
+
+    # BERNARDO
+    print('jobs.py: train_multitask_facerecognition1(): running \'setup(rank=', rank, ', world_size=', world_size, ', port=', 12310+port, ')\'...')
+    setup(rank, world_size, 12310 + port)
+    print('jobs.py: train_multitask_facerecognition1(): function \'setup()\' has finished!')
+
+    # BERNARDO
+    print('jobs.py: train_multitask_facerecognition1(): running \'logger.info()\'...')
+    logger.info(f'[MAIN] output_dir: {cfg.output_dir}')
+    if os.path.exists(cfg.output_dir): shutil.rmtree(cfg.output_dir)
+    os.makedirs(os.path.join(cfg.output_dir, cfg.train.log_dir), exist_ok=True)
+    os.makedirs(os.path.join(cfg.output_dir, cfg.train.vis_dir), exist_ok=True)
+    os.makedirs(os.path.join(cfg.output_dir, cfg.train.val_vis_dir), exist_ok=True)
+
+    with open(os.path.join(cfg.output_dir, cfg.train.log_dir, 'full_config.yaml'), 'w') as f:
+        yaml.dump(cfg, f, default_flow_style=False)
+    # shutil.copy(cfg.cfg_file, os.path.join(cfg.output_dir, 'config.yaml'))
+
+    deterministic(rank)
+
+    # BERNARDO
+    print('jobs.py: train_multitask_facerecognition1(): running \'nfc = util.find_model_using_name()\'...')
+    nfc = util.find_model_using_name(model_dir='micalib.models', model_name=cfg.model.name)(cfg, rank)
+    # trainer = Trainer(nfc_model=nfc, config=cfg, device=rank)
+    trainer = TrainerMultitaskFacerecognition1(nfc_model=nfc, config=cfg, device=rank)
+
+    # BERNARDO
+    print('jobs.py: train_multitask_facerecognition1(): running \'trainer.fit()\'...')
+    trainer.fit()
+
+    dist.destroy_process_group()
+
+
 
 
 def test(rank, world_size, cfg, args):
@@ -125,44 +195,3 @@ def train(rank, world_size, cfg):
     dist.destroy_process_group()
 
 
-
-# Bernardo
-def train_multitask_facerecognition1(rank, world_size, cfg):
-
-    # BERNARDO
-    print('jobs.py: started \'train(rank=', rank, ', world_size=', world_size, ', cfg=', cfg, ')\' function...')
-
-    # BERNARDO
-    print('jobs.py: train(): running \'port = np.random.randint()\'...')
-    port = np.random.randint(low=0, high=2000)
-
-    # BERNARDO
-    print('jobs.py: train(): running \'setup(rank=', rank, ', world_size=', world_size, ', port=', 12310+port, ')\'...')
-    setup(rank, world_size, 12310 + port)
-    print('jobs.py: train(): function \'setup()\' has finished!')
-
-    # BERNARDO
-    print('jobs.py: train(): running \'logger.info()\'...')
-    logger.info(f'[MAIN] output_dir: {cfg.output_dir}')
-    if os.path.exists(cfg.output_dir): shutil.rmtree(cfg.output_dir)
-    os.makedirs(os.path.join(cfg.output_dir, cfg.train.log_dir), exist_ok=True)
-    os.makedirs(os.path.join(cfg.output_dir, cfg.train.vis_dir), exist_ok=True)
-    os.makedirs(os.path.join(cfg.output_dir, cfg.train.val_vis_dir), exist_ok=True)
-
-    with open(os.path.join(cfg.output_dir, cfg.train.log_dir, 'full_config.yaml'), 'w') as f:
-        yaml.dump(cfg, f, default_flow_style=False)
-    # shutil.copy(cfg.cfg_file, os.path.join(cfg.output_dir, 'config.yaml'))
-
-    deterministic(rank)
-
-    # BERNARDO
-    print('jobs.py: train(): running \'nfc = util.find_model_using_name()\'...')
-    nfc = util.find_model_using_name(model_dir='micalib.models', model_name=cfg.model.name)(cfg, rank)
-    # trainer = Trainer(nfc_model=nfc, config=cfg, device=rank)
-    trainer = TrainerMultitaskFacerecognition1(nfc_model=nfc, config=cfg, device=rank)
-
-    # BERNARDO
-    print('jobs.py: train(): running \'trainer.fit()\'...')
-    trainer.fit()
-
-    dist.destroy_process_group()
