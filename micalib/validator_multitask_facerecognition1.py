@@ -122,8 +122,18 @@ class ValidatorMultitaskFacerecognition1(object):
 
                 opdict = self.nfc.decode(codedict, self.trainer.epoch)
                 self.update_embeddings(actors, opdict['faceid'])
-                loss = self.nfc.compute_losses(None, None, opdict)['pred_verts_shape_canonical_diff']
+                # loss = self.nfc.compute_losses(None, None, opdict)['pred_verts_shape_canonical_diff']            # original
+                # loss = self.nfc.compute_losses(self.cfg, None, None, opdict)['pred_verts_shape_canonical_diff']  # Bernardo
+                losses = self.nfc.compute_losses(self.cfg, None, None, opdict)                                     # Bernardo
+                loss = losses['pred_verts_shape_canonical_diff']                                                   # Bernardo
                 optdicts.append((opdict, images, dataset, actors, loss))
+
+                # Bernardo
+                all_loss = 0.
+                losses_key = losses.keys()
+                for key in losses_key:
+                    all_loss = all_loss + losses[key]
+                losses['all_loss'] = all_loss
 
             # Calculate averages
             weighted_average = 0.
@@ -141,9 +151,23 @@ class ValidatorMultitaskFacerecognition1(object):
 
             average = average.item() / len(optdicts)
 
+
+            '''
+            # original
             loss_info = f"Step: {self.trainer.global_step},  Time: {datetime.now().strftime('%Y-%m-%d-%H:%M:%S')} \n"
             loss_info += f'  validation loss (average)         : {average:.5f} \n'
             logger.info(loss_info)
+            '''
+
+            # Bernardo
+            loss_info = f"\nStep: {self.trainer.global_step},  Time: {datetime.now().strftime('%Y-%m-%d-%H:%M:%S')} \n"
+            for k, v in losses.items():
+                loss_info = loss_info + f'  {k}: {v:.4f}\n'
+                if self.cfg.train.write_summary:
+                    self.trainer.writer.add_scalar('val_loss/' + k, v, global_step=self.trainer.global_step)
+            loss_info += f'  validation loss (average)         : {average:.5f} \n'
+            logger.info(loss_info)
+
 
             self.trainer.writer.add_scalar('val/average', average, global_step=self.trainer.global_step)
             for key in avg_per_dataset.keys():

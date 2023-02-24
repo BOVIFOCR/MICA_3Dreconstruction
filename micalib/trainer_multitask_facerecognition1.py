@@ -166,7 +166,8 @@ class TrainerMultitaskFacerecognition1(object):
         encoder_output['y_true'] = y_true
 
         decoder_output = self.nfc.decode(encoder_output, self.epoch)
-        losses = self.nfc.compute_losses(inputs, encoder_output, decoder_output)
+        # losses = self.nfc.compute_losses(inputs, encoder_output, decoder_output)           # original
+        losses = self.nfc.compute_losses(self.cfg, inputs, encoder_output, decoder_output)   # Bernardo
 
         all_loss = 0.
         losses_key = losses.keys()
@@ -224,10 +225,10 @@ class TrainerMultitaskFacerecognition1(object):
         self.prepare_data()
         iters_every_epoch = int(len(self.train_dataset) / self.batch_size)
         
-        # max_epochs = int(self.cfg.train.max_steps / iters_every_epoch)   # original
-        # start_epoch = self.epoch                                         # original
-        max_epochs = int(self.cfg.train.max_steps / (self.batch_size * 10))     # Bernardo
-        start_epoch = 0                                                    # Bernardo
+        # max_epochs = int(self.cfg.train.max_steps / iters_every_epoch)     # original
+        # start_epoch = self.epoch                                           # original
+        max_epochs = int(self.cfg.train.max_steps / (self.batch_size * 10))  # Bernardo
+        start_epoch = 0                                                      # Bernardo
         
         # print('trainer.py: Trainer: fit(): start_epoch:', start_epoch, '    max_epochs:', max_epochs)   # Bernardo
         for epoch in range(start_epoch, max_epochs):
