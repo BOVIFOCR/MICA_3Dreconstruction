@@ -45,7 +45,9 @@ if __name__ == '__main__':
     cfg, args = parse_args()
 
     if cfg.cfg_file is not None:
-        exp_name = cfg.cfg_file.split('/')[-1].split('.')[0]
+        # exp_name = cfg.cfg_file.split('/')[-1].split('.')[0]              # original
+        exp_name = '.'.join(cfg.cfg_file.split('/')[-1].split('.')[:-1])    # Bernardo
+        # print('test_multitask_facerecognition1 - __main__ - cfg.cfg_file:', cfg.cfg_file)
         cfg.output_dir = os.path.join('./output', exp_name)
 
     cudnn.benchmark = False

@@ -304,6 +304,7 @@ class TrainerMultitaskFacerecognition1(object):
                     util.visualize_grid(visdict, savepath, size=512)
 
                 if self.global_step % self.cfg.train.val_steps == 0:
+                    # self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model' + '.tar'))   # Added by Bernardo
                     self.validation_step()
 
                 if self.global_step % self.cfg.train.lr_update_step == 0:

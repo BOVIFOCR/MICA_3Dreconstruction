@@ -15,7 +15,7 @@
 # Contact: mica@tue.mpg.de
 
 
-import os
+import os, sys
 import time
 from glob import glob
 from shutil import copyfile
@@ -31,7 +31,8 @@ root = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/'        
 # experiments = ['4_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100']   # Bernardo
 # experiments = ['5_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedCOSFACE=glint360k-r100']   # Bernardo
 # experiments = ['6_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100']   # Bernardo
-experiments = ['10_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5']   # Bernardo
+# experiments = ['10_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5']   # Bernardo
+experiments = ['11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0']   # Bernardo
 
 
 def test():
@@ -46,7 +47,7 @@ def test():
         print('BERNARDO: creating dir \'' + logs + '\' ... ', end='')
         os.mkdir(logs)
         print(' done!')
-    if not os.path.exists(logs):
+    if not os.path.exists(jobs):
         print('BERNARDO: creating dir \'' + jobs + '\' ... ', end='')
         os.mkdir(jobs)
         print(' done!')
@@ -64,7 +65,14 @@ def test():
         print(f'Testing {experiment}')
         copyfile(f'{root}{experiment}/model.tar', f'{root}{experiment}/best_models/best_model_last.tar')
         for idx, checkpoint in enumerate(glob(root + experiment + f'/best_models/*.tar')):
-            model_name = checkpoint.split('/')[-1].split('.')[0]
+            model_name = checkpoint.split('/')[-1].split('.')[0]              # Original
+            # model_name = '.'.join(checkpoint.split('/')[-1].split('.')[0:-1])   # Bernardo
+
+            # TEST
+            print('model_name:', model_name)
+            print('checkpoint:', checkpoint)
+            # sys.exit(0)
+
             model_name = model_name.replace('best_model_', 'now_test_')
             predicted_meshes = f'{root}{experiment}/{model_name}/predicted_meshes/'
             run = f'{experiment}_{str(idx).zfill(5)}'

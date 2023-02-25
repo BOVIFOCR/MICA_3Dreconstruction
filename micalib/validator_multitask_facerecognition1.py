@@ -179,7 +179,8 @@ class ValidatorMultitaskFacerecognition1(object):
             smoothed_weighted, smoothed = self.best_model(weighted_average, average)
             self.trainer.writer.add_scalar(f'val/smoothed_average', smoothed, global_step=self.trainer.global_step)
 
-            # self.now()
+            # self.now()    # Originally commented
+            # self.now()    # Uncommented by Bernardo
 
             # Print embeddings every nth validation step
             if self.trainer.global_step % (self.cfg.train.val_steps * 5) == 0:
@@ -219,7 +220,19 @@ class ValidatorMultitaskFacerecognition1(object):
         # self.tester.test_now('', 'training', self.nfc.model_dict())
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
         path = f'{root}{self.cfg.output_dir[1:]}/now_test_training/predicted_meshes'
-        cmd = f'./now_validation.sh {path}'
+
+        # Bernardo
+        experiment = self.cfg.output_dir.split('/')[-1]
+        checkpoint = os.path.join(experiment, 'model.tar')
+        
+        # cmd = f'./now_validation.sh {path}'                                                                     # original
+        cmd = f'{root}/testing/now/template_multitask_facerecognition1.sh {experiment} {checkpoint} now {path}'   # Bernardo
+
+        # TEST
+        print('now - experiment:', experiment)
+        print('now - root:', root)
+        print('now - cmd:', cmd)
+
         subprocess.call(cmd, shell=True)
         errors = np.load(f'{path}/results/_computed_distances.npy', allow_pickle=True, encoding="latin1").item()['computed_distances']
         median = np.median(np.hstack(errors))
