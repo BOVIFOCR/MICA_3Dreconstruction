@@ -56,12 +56,13 @@ class Generator:
         self.ARCFACE = '_arcface_input'
 
     def copy(self):
-        logger.info('Start copying...')
+        tqdm.write('Start copying...')
         for instance in tqdm(self.instances):
             payloads = [(instance, instance.get_images, 'images', instance.transform_path)]
             
             # BERNARDO
             tqdm.write('payloads: ' + str(payloads))
+            tqdm.write('instance: ' + str(instance))
             
             with Pool(processes=len(payloads)) as pool:
                 for _ in tqdm(pool.imap_unordered(_copy, payloads), total=len(payloads)):
@@ -90,6 +91,8 @@ class Generator:
             tqdm.write('path: ' + f'{src}*')
             # tqdm.write('image_paths:' + str(image_paths))
 
+            images_without_faces = []
+
             for image_path in tqdm(sorted(glob(f'{src}/images/*/*'))):
                 image_path = image_path.replace('//', '/')    # Bernardo
                 tqdm.write('image_path: ' + str(image_path))  # Bernardo
@@ -111,7 +114,11 @@ class Generator:
                     #     input('PAUSED')
 
                     if bboxes.shape[0] == 0:
+                        # tqdm.write('Face not found - image_path: ' + image_path)    # Bernardo
+                        # sys.exit(0)
+                        images_without_faces.append(image_path)
                         continue
+
                     i = get_center(bboxes, img)
                     bbox = bboxes[i, 0:4]
                     det_score = bboxes[i, 4]
@@ -153,6 +160,12 @@ class Generator:
 
                 # input('PAUSED')   # Bernardo
                 # sys.exit(0)       # Bernardo
+
+            if len(images_without_faces) > 0:
+                tqdm.write('\n\nIMAGES WITHOUT FACES:')
+                for path in images_without_faces:
+                    tqdm.write('path: ' + str(path))
+
 
 
     def run(self):
