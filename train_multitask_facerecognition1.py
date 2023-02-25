@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     # mp.spawn(train, args=(num_gpus, cfg), nprocs=num_gpus, join=True)                           # Original
     # mp.spawn(train, args=(num_gpus, cfg), nprocs=1, join=True)                                  # BERNARDO
-    mp.spawn(train_multitask_facerecognition1, args=(num_gpus, cfg), nprocs=1, join=True)   # BERNARDO
+    mp.spawn(train_multitask_facerecognition1, args=(num_gpus, cfg), nprocs=1, join=True)         # BERNARDO
     # train(rank=num_gpus, world_size=num_gpus, cfg=cfg)
 
     exit(0)
