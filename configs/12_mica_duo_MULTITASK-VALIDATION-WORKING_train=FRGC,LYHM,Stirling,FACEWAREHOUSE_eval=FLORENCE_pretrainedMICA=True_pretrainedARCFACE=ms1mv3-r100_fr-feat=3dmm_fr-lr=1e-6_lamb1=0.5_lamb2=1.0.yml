@@ -29,7 +29,7 @@ output_dir_annotation: ''
 train:
   lr: 1e-5
   arcface_lr: 1e-5
-  face_recog_lr: 1e-5
+  face_recog_lr: 1e-6
   lambda1: 0.5    # reconstruction
   lambda2: 1.0    # recognition
   weight_decay: 2e-4

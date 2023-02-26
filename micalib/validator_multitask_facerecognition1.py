@@ -199,7 +199,10 @@ class ValidatorMultitaskFacerecognition1(object):
 
             for i in np.random.choice(range(0, len(optdicts)), size=4, replace=False):
                 opdict, images, _, _, _ = optdicts[i]
-                n = np.random.randint(0, len(images) - 1)
+
+                # n = np.random.randint(0, len(images) - 1)   # original
+                n = np.random.randint(0, len(images))         # Bernardo (to avoid errors when the batch has only one sample)
+
                 rendering = self.nfc.render.render_mesh(opdict['pred_canonical_shape_vertices'][n:n + 1, ...])
                 pred_canonical_shape_vertices = torch.cat([pred_canonical_shape_vertices, rendering])
                 rendering = self.nfc.render.render_mesh(opdict['flame_verts_shape'][n:n + 1, ...])
