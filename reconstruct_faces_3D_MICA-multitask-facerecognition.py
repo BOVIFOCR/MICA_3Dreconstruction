@@ -16,7 +16,7 @@
 
 
 import argparse
-import os
+import os, sys
 import random
 from glob import glob
 from pathlib import Path
@@ -58,10 +58,14 @@ def process_BERNARDO(args, app, image_size=224):
     processes = []
     # image_paths = sorted(glob(args.i + '/*.*'))                                     # original
     image_paths = sorted(glob(args.i + '/*.jpg')) + sorted(glob(args.i + '/*.png'))   # BERNARDO
+
+    # print('process_BERNARDO - image_paths:', image_paths)
+    # sys.exit(0)
+
     for image_path in tqdm(image_paths):
         name = Path(image_path).stem
         img = cv2.imread(image_path)
-        # print('demo.py: process_BERNARDO(): image_path=', image_path)
+        # print('demo.py: process_BERNARDO - image_path=', image_path)
         bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')
         if bboxes.shape[0] == 0:
             continue
@@ -133,8 +137,13 @@ def main(cfg, args):
     load_checkpoint(args, mica)
     mica.eval()
 
+    # Bernardo
+    arcface_exp_folder = args.a
+    output_exp_folder = args.o
+
     faces = mica.render.faces[0].cpu()
-    Path(args.o).mkdir(exist_ok=True, parents=True)
+    Path(args.i.replace('input', arcface_exp_folder)).mkdir(exist_ok=True, parents=True)
+    Path(args.i.replace('input', output_exp_folder)).mkdir(exist_ok=True, parents=True)
 
     app = FaceAnalysis(name='antelopev2', providers=['CUDAExecutionProvider'])
     app.prepare(ctx_id=0, det_size=(224, 224))
@@ -145,7 +154,7 @@ def main(cfg, args):
         # LIST ALL DIRS (BERNARDO)
         print('Loading folders names...')
         sub_folders = Tree().get_all_sub_folders(args.i)
-        print('sub_folders:', sub_folders)
+        # print('sub_folders:', sub_folders)
         begin_index = 0
         end_index = len(sub_folders)
 
@@ -171,15 +180,8 @@ def main(cfg, args):
         print('------------------------\n')
 
         for args.i in sub_folders[begin_index:end_index]:
-            # args.a = args.i.replace('input', 'arcface')
-            # args.o = args.i.replace('input', 'output')
-            # print('args.i:', args.i)
-            # print('args.a:', args.a)
-            # print('args.o:', args.o)
-
-            # # Bernardo
-            # print('input:', args.i)
-            # print('arcface:', args.a)
+            args.a = args.i.replace('input', arcface_exp_folder)
+            args.o = args.i.replace('input', output_exp_folder)
 
             # paths = process(args, app)   # original
             paths = process_BERNARDO(args, app)   # BERNARDO
@@ -211,6 +213,7 @@ def main(cfg, args):
                 np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
 
             logger.info(f'Processing finished. Results has been saved in {args.o}')
+            print(f'Processing finished. Results has been saved in {args.o}')
             print('------------------------------')
 
 
@@ -223,14 +226,23 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')                    # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')          # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced', type=str, help='Input folder with images')  # BERNARDO
-    # parser.add_argument('-i', default='demo/input/MLFW_small', type=str, help='Input folder with images')                                             # BERNARDO
-    parser.add_argument('-i', default='demo/input/MLFW', type=str, help='Input folder with images')                                             # BERNARDO
+    # parser.add_argument('-i', default='demo/input/MLFW_small', type=str, help='Input folder with images')                                     # BERNARDO
+    parser.add_argument('-i', default='demo/input/MLFW/origin', type=str, help='Input folder with images')                                      # BERNARDO
 
-    parser.add_argument('-o', default='demo/output_11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0', type=str, help='Output folder')
-    parser.add_argument('-a', default='demo/arcface_11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0', type=str, help='Processed images for MICA input')
+    # exp = '11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0'
+    # exp = '11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0'
+    # exp = '12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.5_lamb2=1.0'
+    # exp = '12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0'
+    exp =   '12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0'
+
+    parser.add_argument('-o', default='output' +'_'+exp, type=str, help='Output folder')
+    parser.add_argument('-a', default='arcface'+'_'+exp, type=str, help='Processed images for MICA input')
+
+    parser.add_argument('-exp', default=exp, type=str, help='Processed images for MICA input')
 
     # parser.add_argument('-m', default='data/pretrained/mica.tar', type=str, help='Pretrained model path')    # original
-    parser.add_argument('-m', default='/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0/best_models/best_model_3.tar', type=str, help='Pretrained model path')      # Bernardo
+    # parser.add_argument('-m', default='/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/'+exp+'/best_models/best_model_3.tar', type=str, help='Pretrained model path')      # Bernardo
+    parser.add_argument('-m', default='/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/'+exp+'/model.tar', type=str, help='Pretrained model path')      # Bernardo
 
     parser.add_argument('-str_begin', default='', type=str, help='Substring to find and start processing')
     parser.add_argument('-str_end', default='', type=str, help='Substring to find and stop processing')
