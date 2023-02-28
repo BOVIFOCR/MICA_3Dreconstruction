@@ -15,6 +15,8 @@ from micalib.tester_multitask_facerecognition1 import TesterMultitaskFacerecogni
 from utils import util
 
 from face_classifier_3dmm import FaceClassifier1_MLP
+from face_classifier_3dmm import ArcFaceLoss
+import losses
 
 from torchvision import transforms
 from dataloaders.lfw import LFW_3DMM
@@ -36,7 +38,7 @@ def parse_args(args):
     parser.add_argument('--train_dataset_name', type=str, help='', default='', required=True)
     parser.add_argument('--train_dataset_path', type=str, help='', default='', required=True)
     parser.add_argument('--test_dataset_name', type=str, help='', default='', required=True)
-    parser.add_argument('--test_dataset_path', type=str, help='', default='', required=True)
+    # parser.add_argument('--test_dataset_path', type=str, help='', default='', required=True)
     
     parser.add_argument('--file_ext',     type=str, help='File extension of embbeding face', default='', required=True)
 
@@ -62,49 +64,80 @@ def load_mica_multitask_facerecognition1():
 def make_face_recognizer1_3dmm(num_classes=None):
     model_cfg = None
     device = 'cuda:0'
-    # device_id = '0'
-    faceClassifier = FaceClassifier1_MLP(num_classes=num_classes, model_cfg=model_cfg, device=device).to(device)
+
+    # faceClassifier = FaceClassifier1_MLP(num_classes=num_classes, model_cfg=model_cfg, device=device).to(device)
+    faceClassifier = ArcFaceLoss(num_classes=num_classes, margin=0.5, scale=32, model_cfg=model_cfg, device=device).to(device)
+
     return faceClassifier
 
 
 def get_dataset_loader(dataset_name='', dataset_path=''):
     if dataset_name == 'LFW':
-        dataset = LFW_3DMM(root_dir='/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/demo/output/lfw', file_ext='identity.npy')
+        dataset = LFW_3DMM(root_dir=dataset_path, file_ext='identity.npy')
 
     if dataset_name == 'MLFW':
-        dataset = MLFW_3DMM(root_dir='/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/demo/output/MLFW', file_ext='identity.npy')
+        dataset = MLFW_3DMM(root_dir=dataset_path, file_ext='identity.npy')
 
     elif dataset_name == 'MS1MV2':
         pass
 
-    trainloader = torch.utils.data.DataLoader(dataset, batch_size=16, shuffle=True)
-    return trainloader, dataset.num_classes, dataset.num_samples
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+    trainloader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True)
+    valloader = torch.utils.data.DataLoader(val_dataset, batch_size=16, shuffle=True)
+    return trainloader, valloader, dataset.num_classes, dataset.num_samples
 
 
-def train_model(model=None, trainloader=None):
-    # Define the loss function and optimizer
-    loss_function = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+def train_model(model=None, trainloader=None, valloader=None):
+    # Cross entropy loss
+    loss_function = losses.cross_entropy_loss_logits_and_targets()
+    optimizer = torch.optim.Adam(model.parameters(), lr=2e-5, weight_decay=2e-5)
+
+    # # Arcface loss
+    # loss_function = model.get_arcface_loss
+    # # optimizer = torch.optim.Adam(model.parameters(), lr=1.5e-5, betas=(0.9, 0.999), eps=1e-08, weight_decay=5e-5)   # LFW
+    # optimizer = torch.optim.Adam(model.parameters(), lr=1.5e-5, betas=(0.9, 0.999), eps=1e-08, weight_decay=5e-5)   # MLFW
 
     # Run the training loop
-    for epoch in range(0, 10): # 5 epochs at maximum
+    for epoch in range(0, 30):
         print(f'Starting epoch {epoch+1}')
-        current_loss = 0.0
         
         # Iterate over the DataLoader for training data
-        for i, data in enumerate(trainloader, 0):
-            inputs, targets = data
-            optimizer.zero_grad()
-            logits = model(inputs)
-            
-            loss = loss_function(logits, targets)
-            loss.backward()
-            optimizer.step()
-            
-            current_loss += loss.item()
-            if i % 100 == 99:
-                print('Loss after mini-batch %5d: %.3f' % (i + 1, current_loss / 100))
-                current_loss = 0.0
+        train_loss = 0.0
+        with torch.enable_grad():
+            for i, data in enumerate(trainloader, 0):
+                inputs, targets = data
+                optimizer.zero_grad()
+                logits = model(inputs)
+
+                loss = loss_function(logits, targets)
+                loss.backward()
+                optimizer.step()
+
+                train_loss += loss.item()
+                if i % 100 == 99:
+                    print('Train loss (mini-batch) %5d: %.3f' % (i + 1, train_loss / 100))
+                    train_loss = 0.0
+        
+        # Iterate over the DataLoader for validation data
+        val_loss = 0.0
+        with torch.no_grad():
+            num_val_samples = 0
+            for i, valdata in enumerate(valloader, 0):
+                inputs, targets = valdata
+                logits = model(inputs)
+                loss = loss_function(logits, targets)
+                
+                val_loss += loss.item()
+                num_val_samples += 1
+
+                # if i % 100 == 99:
+                #     print('Val loss (mini-batch) %5d: %.3f' % (i + 1, val_loss / 100))
+                #     val_loss = 0.0
+
+            print('Val loss: %.3f' % (val_loss / num_val_samples))
+        print('-----------------------')
 
     # Process is complete.
     print('Training process has finished.')
@@ -112,18 +145,20 @@ def train_model(model=None, trainloader=None):
 
 def run_training(args):
     # load test dataset
-    print('Getting dataset loader...')
-    trainloader, num_classes, num_samples = get_dataset_loader(dataset_name=args.train_dataset_name, dataset_path=args.train_dataset_path)
+    print('Getting dataset loader:', args.train_dataset_name)
+    print('args.train_dataset_path:', args.train_dataset_path)
+    # trainloader, num_classes, num_samples = get_dataset_loader(dataset_name=args.train_dataset_name, dataset_path=args.train_dataset_path)
+    trainloader, valloader, num_classes, num_samples = get_dataset_loader(dataset_name=args.train_dataset_name, dataset_path=args.train_dataset_path)
     print('num_classes:', num_classes, '    num_samples:', num_samples)
 
     # load trained model
-    print('Loading model...')
+    print('\nLoading model...')
     # load_mica_multitask_facerecognition1()
     faceRecognizer_3dmm = make_face_recognizer1_3dmm(num_classes)
 
     # train model
-    print('Training model...')
-    train_model(model=faceRecognizer_3dmm, trainloader=trainloader)
+    print('\nTraining model...')
+    train_model(model=faceRecognizer_3dmm, trainloader=trainloader, valloader=valloader)
 
     # do verification
 
@@ -132,31 +167,36 @@ def run_training(args):
 
 if __name__ == '__main__':
 
+    exp = ''   # original MICA
+    # exp = '11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0'
+
     sys.argv.append('--cfg_file')
-    sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0.yml')
+    sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/' + exp + '.yml')
 
     sys.argv.append('--experiment')
-    sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0')
+    sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/' + exp)
 
     sys.argv.append('--checkpoint')
     sys.argv.append('model.tar')
 
     sys.argv.append('--train_dataset_name')
-    sys.argv.append('LFW')
-    # sys.argv.append('MLFW')
+    # sys.argv.append('LFW')
+    sys.argv.append('MLFW')
     # sys.argv.append('MS1MV2_1000')
 
     sys.argv.append('--train_dataset_path')
-    # sys.argv.append('LFW')
-    sys.argv.append('MLFW')
+    # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/demo/output/lfw')   # original MICA
+    # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/demo/output/MLFW')    # original MICA
+    # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/demo/output_12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0/MLFW')
+    sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/demo/output_12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0/MLFW')
 
     sys.argv.append('--test_dataset_name')
     sys.argv.append('LFW')
     # sys.argv.append('MLFW')
 
-    sys.argv.append('--test_dataset_path')
-    # sys.argv.append('LFW')
-    sys.argv.append('MLFW')
+    # sys.argv.append('--test_dataset_path')
+    # # sys.argv.append('LFW')
+    # sys.argv.append('MLFW')
 
     sys.argv.append('--file_ext')
     sys.argv.append('.npy')
