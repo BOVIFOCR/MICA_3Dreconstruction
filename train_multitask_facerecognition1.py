@@ -63,8 +63,9 @@ if __name__ == '__main__':
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/13_mica_duo_MULTITASK-ARCFACE-NORM-MINMAX_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/14_mica_duo_MULTITASK-ARCFACE-NORM-MINMAX-ACC_train=FRGC,_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NORM-MINMAX-ACC_train=FRGC,_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
-            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NOXAVIER-NORM-MINMAX-ACC_train=FRGC,_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
-            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NOXAVIER-NORM-MINMAX-ACC_train=FLORENCE,_eval=FRGC_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NOXAVIER-NORM-MINMAX-ACC_train=FRGC_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NOXAVIER-NORM-MINMAX-ACC_train=FLORENCE_eval=FRGC_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
+            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NOXAVIER-NORM-MINMAX-ACC_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
 
             sys.argv.append('--test_dataset')
             sys.argv.append('STIRLING')
