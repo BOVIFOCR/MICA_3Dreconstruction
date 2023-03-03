@@ -77,4 +77,4 @@ demo/arcface*
 demo/output*
 
 # BERNARDO
-models*
+*/models_weights/*
