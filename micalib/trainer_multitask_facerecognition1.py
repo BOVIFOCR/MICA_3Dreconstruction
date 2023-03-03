@@ -88,11 +88,17 @@ class TrainerMultitaskFacerecognition1(object):
         print_info(device)
 
     def configure_optimizers(self):
+        # original
         self.opt = torch.optim.AdamW(
             lr=self.cfg.train.lr,
             weight_decay=self.cfg.train.weight_decay,
             params=self.nfc.parameters_to_optimize(),
             amsgrad=False)
+
+        # # Bernardo
+        # self.opt = torch.optim.SGD(
+        #     params=self.nfc.parameters_to_optimize(),
+        #     lr=self.cfg.train.lr, momentum=0.9, weight_decay=self.cfg.train.weight_decay)
 
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.opt, step_size=1, gamma=0.1)
 
@@ -167,7 +173,8 @@ class TrainerMultitaskFacerecognition1(object):
 
         decoder_output = self.nfc.decode(encoder_output, self.epoch)
         # losses = self.nfc.compute_losses(inputs, encoder_output, decoder_output)           # original
-        losses = self.nfc.compute_losses(self.cfg, inputs, encoder_output, decoder_output)   # Bernardo
+        # losses = self.nfc.compute_losses(self.cfg, inputs, encoder_output, decoder_output)   # Bernardo
+        losses, metrics = self.nfc.compute_losses(self.cfg, inputs, encoder_output, decoder_output)   # Bernardo
 
         all_loss = 0.
         losses_key = losses.keys()
@@ -182,6 +189,7 @@ class TrainerMultitaskFacerecognition1(object):
                 'images': images,
                 'flame_verts_shape': decoder_output['flame_verts_shape'],
                 'pred_canonical_shape_vertices': decoder_output['pred_canonical_shape_vertices'],
+                'metrics': metrics,
             }
 
         if 'deca' in decoder_output:
@@ -260,11 +268,19 @@ class TrainerMultitaskFacerecognition1(object):
                                 f"  Step: {self.global_step}\n" \
                                 f"  Iter: {step}/{iters_every_epoch}\n" \
                                 f"  LR: {self.opt.param_groups[0]['lr']}\n" \
+                                f"  arcface_lr: {self.opt.param_groups[1]['lr']}\n" \
+                                f"  face_recog_lr: {self.opt.param_groups[2]['lr']}\n" \
                                 f"  Time: {datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}\n"
                     for k, v in losses.items():
                         loss_info = loss_info + f'  {k}: {v:.4f}\n'
                         if self.cfg.train.write_summary:
                             self.writer.add_scalar('train_loss/' + k, v, global_step=self.global_step)
+                    
+                    # Bernardo
+                    train_acc = opdict['metrics']['acc']
+                    loss_info = loss_info + f'  acc: {train_acc:.4f}\n'
+                    self.writer.add_scalar('train_loss/acc:', train_acc, global_step=self.global_step)
+
                     logger.info(loss_info)
 
                 if visualizeTraining and self.device == 0:

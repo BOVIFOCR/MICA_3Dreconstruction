@@ -53,16 +53,26 @@ if __name__ == '__main__':
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0.yml')
-            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.5_lamb2=1.0.yml')
-            
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/13_mica_duo_MULTITASK-ARCFACE_train=FRGC_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-4_lamb1=1.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/13_mica_duo_MULTITASK-ARCFACE_train=FRGC_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/13_mica_duo_MULTITASK-ARCFACE_train=FRGC_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=1.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/13_mica_duo_MULTITASK-ARCFACE_train=FRGC_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=1.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/13_mica_duo_MULTITASK-ARCFACE-NORM-MINMAX_train=FRGC_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/13_mica_duo_MULTITASK-ARCFACE-NORM-MINMAX_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/14_mica_duo_MULTITASK-ARCFACE-NORM-MINMAX-ACC_train=FRGC,_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NORM-MINMAX-ACC_train=FRGC,_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
+            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NOXAVIER-NORM-MINMAX-ACC_train=FRGC,_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/15_mica_duo_MULTITASK-NEW-ARCFACE-NOXAVIER-NORM-MINMAX-ACC_train=FLORENCE,_eval=FRGC_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.0_lamb2=1.0.yml')
+
             sys.argv.append('--test_dataset')
             sys.argv.append('STIRLING')
 
             sys.argv.append('--checkpoint')
             sys.argv.append('')
 
-    cfg, args = parse_args()
+    cfg, args = parse_args() 
 
     if cfg.cfg_file is not None:
         # exp_name = cfg.cfg_file.split('/')[-1].split('.')[0]                              # original

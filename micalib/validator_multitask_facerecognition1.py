@@ -121,12 +121,15 @@ class ValidatorMultitaskFacerecognition1(object):
                 codedict['y_true'] = y_true
 
                 opdict = self.nfc.decode(codedict, self.trainer.epoch)
-                self.update_embeddings(actors, opdict['faceid'])
+                # self.update_embeddings(actors, opdict['faceid'])                                                 # original
                 # loss = self.nfc.compute_losses(None, None, opdict)['pred_verts_shape_canonical_diff']            # original
                 # loss = self.nfc.compute_losses(self.cfg, None, None, opdict)['pred_verts_shape_canonical_diff']  # Bernardo
-                losses = self.nfc.compute_losses(self.cfg, None, None, opdict)                                     # Bernardo
+                # losses = self.nfc.compute_losses(self.cfg, None, None, opdict)                                   # Bernardo
+                losses, metrics = self.nfc.compute_losses(self.cfg, None, None, opdict)                            # Bernardo
+
                 loss = losses['pred_verts_shape_canonical_diff']                                                   # Bernardo
-                optdicts.append((opdict, images, dataset, actors, loss))
+                # optdicts.append((opdict, images, dataset, actors, loss))          # original
+                optdicts.append((opdict, images, dataset, actors, loss, metrics))   # Bernardo
 
                 # Bernardo
                 all_loss = 0.
@@ -139,10 +142,13 @@ class ValidatorMultitaskFacerecognition1(object):
             weighted_average = 0.
             average = 0.
             avg_per_dataset = {}
+            avg_acc = 0.   # Bernardo
             for optdict in optdicts:
-                opdict, images, dataset, actors, loss = optdict
+                # opdict, images, dataset, actors, loss = optdict   # original
+                opdict, images, dataset, actors, loss, metric = optdict   # original
                 name = dataset[0]
                 average += loss
+                avg_acc += metric['acc']
                 if name not in avg_per_dataset:
                     avg_per_dataset[name] = (loss, 1.)
                 else:
@@ -150,7 +156,7 @@ class ValidatorMultitaskFacerecognition1(object):
                     avg_per_dataset[name] = (l + loss, i + 1.)
 
             average = average.item() / len(optdicts)
-
+            avg_acc = avg_acc.item() / len(optdicts)
 
             '''
             # original
@@ -160,12 +166,14 @@ class ValidatorMultitaskFacerecognition1(object):
             '''
 
             # Bernardo
-            loss_info = f"\nStep: {self.trainer.global_step},  Time: {datetime.now().strftime('%Y-%m-%d-%H:%M:%S')} \n"
+            loss_info = f"\n  Validation - Step: {self.trainer.global_step},  Time: {datetime.now().strftime('%Y-%m-%d-%H:%M:%S')} \n"
             for k, v in losses.items():
-                loss_info = loss_info + f'  {k}: {v:.4f}\n'
+                loss_info = loss_info + f'  validation {k}: {v:.4f}\n'
                 if self.cfg.train.write_summary:
                     self.trainer.writer.add_scalar('val_loss/' + k, v, global_step=self.trainer.global_step)
+            self.trainer.writer.add_scalar('val_loss/acc', avg_acc, global_step=self.trainer.global_step)
             loss_info += f'  validation loss (average)         : {average:.5f} \n'
+            loss_info += f'  validation acc (average)         : {avg_acc:.5f} \n'
             logger.info(loss_info)
 
 
@@ -198,7 +206,8 @@ class ValidatorMultitaskFacerecognition1(object):
             input_images = torch.empty(0, 3, 224, 224).cuda()
 
             for i in np.random.choice(range(0, len(optdicts)), size=4, replace=False):
-                opdict, images, _, _, _ = optdicts[i]
+                # opdict, images, _, _, _ = optdicts[i]    # original
+                opdict, images, _, _, _, _ = optdicts[i]   # Bernardo
 
                 # n = np.random.randint(0, len(images) - 1)   # original
                 n = np.random.randint(0, len(images))         # Bernardo (to avoid errors when the batch has only one sample)
