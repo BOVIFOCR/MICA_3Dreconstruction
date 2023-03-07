@@ -62,26 +62,7 @@ def get_labels_map(train_dataset, val_dataset):
         for name in actors_name:
             labels_map[name] = i
             i += 1
-    
-    # # validation datasets
-    # for j, dataset in enumerate(val_dataset.datasets):
-    #     # print('get_labels_map - j:', j, '    val_dataset.dataset.__dir__():', dataset.__dir__())
-    #     # print('get_labels_map - j:', j, '    val_dataset.dataset.face_dict.keys():', list(dataset.face_dict.keys()))
-    #     actors_name = list(dataset.face_dict.keys())
-    #     all_actors_name += actors_name
-    #     for name in actors_name:
-    #         labels_map[name] = i
-    #         i += 1
-    
-    # CHECK REPEATED ACTORS
-    # # print('get_labels_map - all_actors_name:', all_actors_name)
-    # for k, actor_name in enumerate(all_actors_name):
-    #     indexes = get_all_indexes_in_list(actor_name, all_actors_name)
-    #     # print('get_labels_map - len(indexes):', len(indexes))
-    #     if len(indexes) > 1:
-    #         print('get_labels_map - ERROR, DUPLICATE ACTOR NAME - actor_name:', actor_name, '    found indexes:', indexes)
-    #         sys.exit(0)
-    
+
     # print('get_labels_map - self.labels_map:', labels_map)
     return labels_map
 
