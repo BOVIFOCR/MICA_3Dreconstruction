@@ -32,6 +32,7 @@ from torchvision import transforms
 
 class BaseDataset_MultitaskFaceRecognition(Dataset, ABC):
     def __init__(self, name, config, device, isEval):
+        self.config = config    # Bernardo
         self.K = config.K
         self.isEval = isEval
         self.n_train = np.Inf
@@ -83,13 +84,30 @@ class BaseDataset_MultitaskFaceRecognition(Dataset, ABC):
     def __getitem__(self, index):
         actor = self.imagepaths[index]
         images, params_path = self.face_dict[actor]
-        images = [Path(self.dataset_root, self.name, self.image_folder, path) for path in images]
+
+        # Bernardo
+        start_idx = 0
+        end_idx = int(len(images) * self.config.train_prop)
+        if self.isEval:
+            start_idx = end_idx
+            end_idx = len(images)
+
+        # # Bernardo
+        # print('__getitem__ - self.isEval:', self.isEval)
+        # print('__getitem__ - len(images):', len(images))
+        # print('__getitem__ - start_idx:', start_idx)
+        # print('__getitem__ - end_idx:', end_idx)
+        # print('---------------')
+
+        # images = [Path(self.dataset_root, self.name, self.image_folder, path) for path in images]                    # original
+        images = [Path(self.dataset_root, self.name, self.image_folder, path) for path in images[start_idx:end_idx]]   # Bernardo
+        assert len(images) == end_idx-start_idx   # Bernardo
         sample_list = np.array(np.random.choice(range(len(images)), size=self.K, replace=False))
 
         K = self.K
-        if self.isEval:
-            K = max(0, min(200, self.min_max_K))
-            sample_list = np.array(range(len(images))[:K])
+        # if self.isEval:                                      # Commented by Bernardo
+        #     K = max(0, min(200, self.min_max_K))             # Commented by Bernardo
+        #     sample_list = np.array(range(len(images))[:K])   # Commented by Bernardo
 
         params = np.load(os.path.join(self.dataset_root, self.name, self.flame_folder, params_path), allow_pickle=True)
         pose = torch.tensor(params['pose']).float()
