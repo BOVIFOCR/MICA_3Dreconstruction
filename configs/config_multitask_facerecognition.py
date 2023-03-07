@@ -55,8 +55,9 @@ cfg.model.use_pretrained = True
 cfg.model.arcface_pretrained_model = os.path.join(cfg.mica_dir, 'models/models_weights/arcface-torch/glint360k_cosface_r100_fp16_0.1/backbone.pth')   # BERNARDO
 # print('configs/config.py: cfg.model.arcface_pretrained_model=', cfg.model.arcface_pretrained_model)                     # BERNARDO
 # sys.exit(0)
-# cfg.model.num_classes = 0
-cfg.model.num_classes = 2041
+cfg.model.face_embed = '3dmm'      # Bernardo
+# cfg.model.num_classes = 0        # Bernardo
+cfg.model.num_classes = 2041       # Bernardo
 
 
 # ---------------------------------------------------------------------------- #

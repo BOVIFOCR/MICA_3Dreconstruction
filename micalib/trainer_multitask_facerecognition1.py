@@ -35,6 +35,8 @@ sys.path.append("./micalib")
 # from validator import Validator                                                      # original
 from validator_multitask_facerecognition1 import ValidatorMultitaskFacerecognition1    # Bernardo
 
+torch.autograd.set_detect_anomaly(True)
+
 
 def print_info(rank):
     props = torch.cuda.get_device_properties(rank)

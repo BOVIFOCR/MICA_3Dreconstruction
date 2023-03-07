@@ -32,19 +32,29 @@ from loguru import logger
 
 
 class ArcFace_MLP(torch.nn.Module):
-    def __init__(self, num_classes=None, margin=0.5, scale=64.0, model_cfg=None, device=None):
+    def __init__(self, num_classes=None, margin=0.5, scale=64.0, cfg=None, device=None):
         super(ArcFace_MLP, self).__init__()
-        self.fc1 = nn.Linear(300, 512)
-        self.fc2 = nn.Linear(512, 1024)
-        self.fc3 = nn.Linear(1024, num_classes)
-        self.fc4 = nn.Linear(num_classes, num_classes)
-        self.norm_fc1 = nn.BatchNorm1d(512)
-        self.norm_fc2 = nn.BatchNorm1d(1024)
-        self.norm_fc3 = nn.BatchNorm1d(num_classes)
-
+        self.cfg = cfg
         self.num_classes = num_classes
         self.margin = margin
         self.scale = scale
+
+        # Bernardo
+        if self.cfg.model.face_embed == 'arcface':
+            input_size = 512            # ArcFace embedding (512)
+        elif self.cfg.model.face_embed == '3dmm':
+            input_size = 300            # 3DMM embedding (300)
+        elif self.cfg.model.face_embed == 'pc_vertices':
+            input_size = (5023,3)       # FLAME Point Cloud (5023,3)
+
+        self.fc1 = nn.Linear(input_size, 512)
+        self.fc2 = nn.Linear(512, 1024)
+        self.fc3 = nn.Linear(1024, self.num_classes)
+        self.fc4 = nn.Linear(self.num_classes, self.num_classes)
+        self.norm_fc1 = nn.BatchNorm1d(512)
+        self.norm_fc2 = nn.BatchNorm1d(1024)
+        self.norm_fc3 = nn.BatchNorm1d(self.num_classes)
+
         self.weight = nn.Parameter(torch.Tensor(self.num_classes, self.num_classes))
         
         # nn.init.constant_(self.weight, 0)
@@ -104,7 +114,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
 
         # Bernardo
         # self.faceClassifier = FaceClassifier1_MLP(self.cfg.model.num_classes, model_cfg, self.device).to(self.device)
-        self.faceClassifier = ArcFace_MLP(num_classes=self.cfg.model.num_classes, margin=0.5, scale=1.0, model_cfg=model_cfg, device=self.device).to(self.device)
+        self.faceClassifier = ArcFace_MLP(num_classes=self.cfg.model.num_classes, margin=0.5, scale=1.0, cfg=self.cfg, device=self.device).to(self.device)
 
     def load_model(self):
         model_path = os.path.join(self.cfg.output_dir, 'model.tar')
@@ -166,10 +176,15 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # }
 
         # Bernardo
-        # logits_pred, prob_pred, y_pred = self.faceClassifier(identity_code)      # 2D face recognition (512)
-        # logits_pred, prob_pred, y_pred = self.faceClassifier(pred_shape_code)    # 3D face recognition (300)
-        logits_pred, prob_pred, y_pred = self.faceClassifier(pred_shape_code)      # 3D face recognition (300)
+        if self.cfg.model.face_embed == 'arcface':
+            face_embed = identity_code            # ArcFace embedding (512)
+        elif self.cfg.model.face_embed == '3dmm':
+            face_embed = pred_shape_code          # 3DMM embedding (300)
+        elif self.cfg.model.face_embed == 'pc_vertices':
+            face_embed = pred_canonical_vertices  # FLAME Point Cloud (5023)
 
+        logits_pred, prob_pred, y_pred = self.faceClassifier(face_embed)
+        
         y_true = None
         if 'y_true' in codedict:
             y_true = codedict['y_true']
@@ -243,7 +258,8 @@ class MICAMultitaskFacerecognition1(BaseModel):
     def compute_losses(self, configs, input, encoder_output, decoder_output):
         losses = {}
 
-        pred_verts = decoder_output['pred_canonical_shape_vertices']
+        # pred_verts = decoder_output['pred_canonical_shape_vertices']         # original
+        pred_verts = decoder_output['pred_canonical_shape_vertices'].detach()  # Bernardo
         gt_verts = decoder_output['flame_verts_shape'].detach()
 
         pred_verts_shape_canonical_diff = (pred_verts - gt_verts).abs()
