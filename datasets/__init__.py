@@ -29,7 +29,7 @@ def get_imagelabel_from_imagename(imagename, labels_map):
     imagelabel = [None] * len(imagename)
     for i, name in enumerate(imagename):
         imagelabel[i] = labels_map[name]
-    return np.array(imagelabel)    
+    return np.array(imagelabel)
 
 # Bernardo
 def get_onehotvector_from_imagelabel1(imagelabel, num_classes):
@@ -55,15 +55,16 @@ def get_labels_map(train_dataset, val_dataset):
 
     # train datasets
     for j, dataset in enumerate(train_dataset.datasets):
-        # print('get_labels_map - j:', j, '    train_dataset.dataset.__dir__():', dataset.__dir__())
-        # print('get_labels_map - j:', j, '    train_dataset.dataset.face_dict.keys():', list(dataset.face_dict.keys()))
         actors_name = list(dataset.face_dict.keys())
         all_actors_name += actors_name
         for name in actors_name:
-            labels_map[name] = i
-            i += 1
+            if not name in labels_map:
+                labels_map[name] = i
+                i += 1
+            else:
+                print('ERROR: repeated actor name:', name)
+                sys.exit(0)
 
-    # print('get_labels_map - self.labels_map:', labels_map)
     return labels_map
 
 
