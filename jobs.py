@@ -28,9 +28,7 @@ import yaml
 from loguru import logger
 
 from micalib.tester import Tester
-from micalib.tester_multitask_facerecognition1 import TesterMultitaskFacerecognition1     # Bernardo
 from micalib.trainer import Trainer
-from micalib.trainer_multitask_facerecognition1 import TrainerMultitaskFacerecognition1   # Bernardo
 from utils import util
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
@@ -69,6 +67,9 @@ def deterministic(rank):
 
 # Bernardo
 def test_multitask_facerecognition1(rank, world_size, cfg, args):
+    from micalib.tester_multitask_facerecognition1 import TesterMultitaskFacerecognition1     # Bernardo
+    from micalib.tester_multitask_FACEVERIFICATION import TesterMultitaskFacerverification     # Bernardo
+
     port = np.random.randint(low=0, high=2000)
     setup(rank, world_size, 12310 + port)
 
@@ -78,21 +79,36 @@ def test_multitask_facerecognition1(rank, world_size, cfg, args):
     mica = util.find_model_using_name(model_dir='micalib.models', model_name=cfg.model.name)(cfg, rank)
 
     # tester = Tester(nfc_model=mica, config=cfg, device=rank)                          # original
-    tester = TesterMultitaskFacerecognition1(nfc_model=mica, config=cfg, device=rank)   # Bernardo
+    # tester = TesterMultitaskFacerecognition1(nfc_model=mica, config=cfg, device=rank) # Bernardo
+    tester = TesterMultitaskFacerverification(nfc_model=mica, config=cfg, device=rank)  # Bernardo
 
     tester.render_mesh = True
 
+    '''
+    # original
     if args.test_dataset.upper() == 'STIRLING':
         tester.test_stirling(args.checkpoint)
     elif args.test_dataset.upper() == 'NOW':
         tester.test_now(args.checkpoint)
     else:
         logger.error('[TESTER] Test dataset was not specified!')
+    '''
+
+    # Bernardo
+    if args.test_dataset.upper() == 'MLFW':
+        tester.test_mlfw(args.checkpoint)
+    elif args.test_dataset.upper() == 'LFW':
+        tester.test_lfw(args.checkpoint)
+    else:
+        logger.error('[TESTER] Test dataset was not specified: ' + str(args.test_dataset))
+    
+    logger.error('[TESTER] Test has ended!')
 
     dist.destroy_process_group()
 
 # Bernardo
 def train_multitask_facerecognition1(rank, world_size, cfg):
+    from micalib.trainer_multitask_facerecognition1 import TrainerMultitaskFacerecognition1   # Bernardo
 
     # BERNARDO
     print('jobs.py: started \'train_multitask_facerecognition1 - rank=', rank, ', world_size=', world_size, ', cfg=', cfg, ')\' function...')

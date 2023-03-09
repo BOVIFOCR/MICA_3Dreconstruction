@@ -56,7 +56,6 @@ class ArcFace_MLP(torch.nn.Module):
         self.norm_fc3 = nn.BatchNorm1d(self.num_classes)
 
         self.weight = nn.Parameter(torch.Tensor(self.num_classes, self.num_classes))
-        
         # nn.init.constant_(self.weight, 0)
         # nn.init.normal_(self.weight, 0, 0.1)
         # nn.init.xavier_uniform_(self.weight)
@@ -71,12 +70,15 @@ class ArcFace_MLP(torch.nn.Module):
         x = F.relu(self.norm_fc2(self.fc2(x)))
         x = F.relu(self.norm_fc3(self.fc3(x)))
         x = self.fc4(x)
+        
+        face_embedd = x
+        # face_embedd = F.linear(x, self.weight)
 
         cosine = F.linear(F.normalize(x), F.normalize(self.weight))
         prob_pred = torch.nn.functional.softmax(cosine, dim=1)
         y_pred = torch.argmax(cosine, dim=1)
 
-        return cosine, prob_pred, y_pred
+        return face_embedd, cosine, prob_pred, y_pred
 
 
 class FaceClassifier1_MLP(torch.nn.Module):
@@ -127,6 +129,8 @@ class MICAMultitaskFacerecognition1(BaseModel):
                 self.arcface.load_state_dict(checkpoint['arcface'])
             if 'flameModel' in checkpoint:
                 self.flameModel.load_state_dict(checkpoint['flameModel'])
+            if 'faceClassifier' in checkpoint:
+                self.faceClassifier.load_state_dict(checkpoint['faceClassifier'])
         else:
             logger.info(f'[{self.tag}] Checkpoint not available starting from scratch!')
 
@@ -183,7 +187,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
         elif self.cfg.model.face_embed == 'pc_vertices':
             face_embed = pred_canonical_vertices  # FLAME Point Cloud (5023)
 
-        logits_pred, prob_pred, y_pred = self.faceClassifier(face_embed)
+        face_embedd, logits_pred, prob_pred, y_pred = self.faceClassifier(face_embed)
         
         y_true = None
         if 'y_true' in codedict:
@@ -197,6 +201,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
             'pred_shape_code': pred_shape_code,
             'faceid': codedict['arcface'],
 
+            'face_embedd': face_embedd,
             'logits_pred': logits_pred,
             'prob_pred': prob_pred,
             'y_pred': y_pred,

@@ -38,7 +38,7 @@ train:
   face_recog_lr: 1e-7
   lambda1: 0.0    # reconstruction
   lambda2: 1.0    # recognition
-  weight_decay: 2e-3
+  weight_decay: 2e-5
   use_mask: True
   reset_optimizer: False
   max_steps: 160000
@@ -56,7 +56,8 @@ model:
   # name: 'mica'          # original
   name: 'micamultitaskfacerecognition1'
 
-  face_embed: '3dmm'      # Bernardo
+  # face_embed: '3dmm'    # Bernardo
+  face_embed: 'arcface'   # Bernardo
 
   # num_classes: 1945     # Bernardo
   num_classes: 2041       # Bernardo
