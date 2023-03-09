@@ -35,10 +35,10 @@ output_dir_annotation: ''
 train:
   lr: 1e-6
   arcface_lr: 1e-6
-  face_recog_lr: 1e-6
+  face_recog_lr: 1e-7
   lambda1: 0.0    # reconstruction
   lambda2: 1.0    # recognition
-  weight_decay: 2e-4
+  weight_decay: 2e-3
   use_mask: True
   reset_optimizer: False
   max_steps: 160000

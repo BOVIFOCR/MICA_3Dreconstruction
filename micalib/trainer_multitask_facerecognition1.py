@@ -31,6 +31,11 @@ import datasets
 from configs.config import cfg
 from utils import util
 
+# from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
+import matplotlib.pyplot as plt
+
 sys.path.append("./micalib")
 # from validator import Validator                                                      # original
 from validator_multitask_facerecognition1 import ValidatorMultitaskFacerecognition1    # Bernardo
@@ -77,7 +82,7 @@ class TrainerMultitaskFacerecognition1(object):
 
         # Bernardo
         self.labels_map = {}
-
+        
         # reset optimizer if loaded from pretrained model
         if self.cfg.train.reset_optimizer:
             self.configure_optimizers()  # reset optimizer
@@ -191,6 +196,8 @@ class TrainerMultitaskFacerecognition1(object):
                 'images': images,
                 'flame_verts_shape': decoder_output['flame_verts_shape'],
                 'pred_canonical_shape_vertices': decoder_output['pred_canonical_shape_vertices'],
+                'y_pred': decoder_output['y_pred'],
+                'y_true': decoder_output['y_true'],
                 'metrics': metrics,
             }
 
@@ -230,6 +237,30 @@ class TrainerMultitaskFacerecognition1(object):
         self.train_iter = iter(self.train_dataloader)
         logger.info(f'[TRAINER] Training dataset is ready with {len(self.train_dataset)} actors and {total_images} images.')
 
+    # Bernardo
+    def get_confusion_matrix(self, y_true, y_pred, num_classes):
+        assert y_true.shape == y_pred.shape
+        cfm = np.zeros(shape=(self.cfg.model.num_classes, self.cfg.model.num_classes), dtype=np.float32)
+        for yt, yp in zip(y_true, y_pred):
+            # print('get_confusion_matrix - yt:', yt, '  yp:', yp)
+            cfm[yt, yp] += 1
+        return cfm
+
+    # Bernardo
+    def build_confusion_matrix_figure(self, cf_matrix, num_classes):
+        scale_factor =   0.01
+        # scale_factor = 0.015
+        fig, ax = plt.subplots(1, 1, figsize=(num_classes*scale_factor, num_classes*scale_factor))
+        im = ax.imshow(cf_matrix)
+
+        ax.set_title(f'Confusion Matrix - num_classes: {num_classes}')
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('Actual')
+        ax.set_xlim(-1, num_classes)
+        ax.set_ylim(-1, num_classes)
+        fig.tight_layout()
+        return fig
+
 
     def fit(self):
         self.prepare_data()
@@ -239,9 +270,13 @@ class TrainerMultitaskFacerecognition1(object):
         # start_epoch = self.epoch                                           # original
         max_epochs = int(self.cfg.train.max_steps / (self.batch_size * 10))  # Bernardo
         start_epoch = 0                                                      # Bernardo
-        
+
         # print('trainer.py: Trainer: fit(): start_epoch:', start_epoch, '    max_epochs:', max_epochs)   # Bernardo
         for epoch in range(start_epoch, max_epochs):
+
+            # Bernardo
+            self.cf_matrix_epoch_train = np.zeros(shape=(self.cfg.model.num_classes, self.cfg.model.num_classes), dtype=np.float32)
+
             # print('trainer.py: Trainer: fit(): epoch:', epoch, '    iters_every_epoch:', iters_every_epoch)   # Bernardo
             for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{epoch + 1}/{max_epochs}]"):
                 # print('    step:', step, '    self.global_step:', self.global_step, '    self.cfg.train.max_steps:', self.cfg.train.max_steps)
@@ -258,6 +293,12 @@ class TrainerMultitaskFacerecognition1(object):
 
                 self.opt.zero_grad()
                 losses, opdict = self.training_step(batch)
+
+                # GET CONFUSION MATRIX - Bernardo
+                y_true = torch.argmax(opdict['y_true'], dim=1).cpu().numpy()
+                y_pred = opdict['y_pred'].cpu().numpy()
+                cf_matrix_batch = self.get_confusion_matrix(y_true, y_pred, self.cfg.model.num_classes)
+                self.cf_matrix_epoch_train += cf_matrix_batch
 
                 all_loss = losses['all_loss']
                 all_loss.backward()
@@ -292,6 +333,11 @@ class TrainerMultitaskFacerecognition1(object):
                     # add images to tensorboard
                     for k, v in visdict.items():
                         self.writer.add_images(k, np.clip(v.detach().cpu(), 0.0, 1.0), self.global_step)
+
+                    # SAVE CONFUSION MATRIX - Bernardo
+                    cf_matrix_epoch_train_fig = self.build_confusion_matrix_figure(self.cf_matrix_epoch_train, self.cfg.model.num_classes)
+                    self.writer.add_figure('cf_matrix_epoch_train', cf_matrix_epoch_train_fig, self.global_step)
+                    plt.close()
 
                     pred_canonical_shape_vertices = torch.empty(0, 3, 512, 512).cuda()
                     flame_verts_shape = torch.empty(0, 3, 512, 512).cuda()
