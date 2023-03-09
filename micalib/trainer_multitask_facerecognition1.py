@@ -318,7 +318,7 @@ class TrainerMultitaskFacerecognition1(object):
                         loss_info = loss_info + f'  {k}: {v:.4f}\n'
                         if self.cfg.train.write_summary:
                             self.writer.add_scalar('train_loss/' + k, v, global_step=self.global_step)
-                    
+
                     # Bernardo
                     train_acc = opdict['metrics']['acc']
                     loss_info = loss_info + f'  acc: {train_acc:.4f}\n'
