@@ -1,0 +1,63 @@
+# Mica config 
+
+pretrained_model_path: '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/data/pretrained/mica.tar'
+
+dataset:
+  # root: '/home/bjgbiesseck/datasets/'
+  root: '/datasets1/bjgbiesseck/MICA'
+
+  # training_data: [ 'LYHM', 'D3DFACS', 'BU3DFE', 'FRGC', 'Stirling', 'FaceWarehouse', 'BP4D' ]    # original
+  # training_data: [ 'FRGC' ]                          # BERNARDO
+  # training_data: [ 'Stirling' ]                          # BERNARDO
+  # training_data: [ 'FRGC', 'Stirling', 'LYHM', 'FLORENCE' ]      # BERNARDO
+  # training_data: [ 'FRGC', 'LYHM', 'Stirling', 'FACEWAREHOUSE' ]   # BERNARDO
+  training_data: [ 'FRGC', 'LYHM', 'Stirling', 'FACEWAREHOUSE', 'FLORENCE' ]   # BERNARDO
+
+  # eval_data: [ 'FLORENCE' ]          # original
+  # eval_data: [ 'FACEWAREHOUSE' ]   # Bernardo
+  # eval_data: [ 'Stirling' ]        # Bernardo
+  eval_data: [ 'FRGC', 'LYHM', 'Stirling', 'FACEWAREHOUSE', 'FLORENCE' ]   # BERNARDO
+
+  train_prop: 0.8
+  eval_prop: 0.2
+
+  num_workers: 4    # original
+  # num_workers: 1      # BERNARDO
+
+  batch_size: 8
+
+  # K: 2    # original
+  K: 1      # BERNARDO
+
+# Bernardo
+output_dir_annotation: ''
+
+train:
+  lr: 1e-6
+  arcface_lr: 1e-6
+  face_recog_lr: 1e-7
+  lambda1: 0.1   # reconstruction
+  lambda2: 1.0    # recognition
+  weight_decay: 2e-5
+  use_mask: True
+  reset_optimizer: False
+  max_steps: 160000
+  log_steps: 50
+  val_steps: 300
+  vis_steps: 1200
+  val_save_img: 1200
+  checkpoint_steps: 1000
+  checkpoint_epochs_steps: 10000
+
+model:
+  use_pretrained: False # original
+  # use_pretrained: True    # Bernardo
+  n_shape: 300
+  # name: 'mica'          # original
+  name: 'micamultitaskfacerecognition1'
+
+  face_embed: '3dmm'      # Bernardo
+
+  # num_classes: 1945     # Bernardo
+  num_classes: 2041       # Bernardo
+  # num_classes: 584      # Bernardo
