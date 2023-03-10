@@ -102,7 +102,7 @@ def test_multitask_facerecognition1(rank, world_size, cfg, args):
     else:
         logger.error('[TESTER] Test dataset was not specified: ' + str(args.test_dataset))
     
-    logger.error('[TESTER] Test has ended!')
+    logger.info('[TESTER] Test has ended!')
 
     dist.destroy_process_group()
 

@@ -114,14 +114,9 @@ class TesterMultitaskFacerverification(object):
             aimg = face_align.norm_crop(img, landmark=face.kps)
         else:
             aimg = img
-        
+
         # blob = cv2.dnn.blobFromImages([aimg], 1.0 / input_std, (112, 112), (input_mean, input_mean, input_mean), swapRB=True)
         blob = cv2.dnn.blobFromImages([aimg], 1.0 / input_std, (112, 112), (input_mean, input_mean, input_mean), swapRB=False)
-
-        # blob = blob.transpose(2, 0, 1)
-        # blob = blob.transpose(0, 3, 1, 2)
-        
-        # print(f'tester_multitask_FACEVERIFICATION - process_image - blob  shape: {blob.shape}  min: {blob.min()}  max: {blob.max()}')
 
         # images.append(torch.tensor(blob[0])[None])   # original
         # return images                                # original
@@ -207,7 +202,7 @@ class TesterMultitaskFacerverification(object):
     
 
     # Bernardo
-    def find_best_treshold(self, cos_sims):
+    def find_best_treshold(self, cache, cos_sims):
         start, end = 0, 1
         step = 0.01
         treshs = torch.arange(start, end+step, step)
@@ -244,5 +239,5 @@ class TesterMultitaskFacerverification(object):
         logger.info(f"Computing pair distances...")
         cos_sims = self.get_all_distances(cache)
 
-        self.find_best_treshold(cos_sims)
+        self.find_best_treshold(cache, cos_sims)
         
