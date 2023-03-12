@@ -40,12 +40,7 @@ class ArcFace_MLP(torch.nn.Module):
         self.scale = scale
 
         # Bernardo
-        if self.cfg.model.face_embed == 'arcface':
-            input_size = 512            # ArcFace embedding (512)
-        elif self.cfg.model.face_embed == '3dmm':
-            input_size = 300            # 3DMM embedding (300)
-        elif self.cfg.model.face_embed == 'pc_vertices':
-            input_size = (5023,3)       # FLAME Point Cloud (5023,3)
+        input_size = self.infer_input_size(self.cfg.model.face_embed)
 
         self.fc1 = nn.Linear(input_size, 512)
         self.fc2 = nn.Linear(512, 1024)
@@ -61,11 +56,6 @@ class ArcFace_MLP(torch.nn.Module):
         # nn.init.xavier_uniform_(self.weight)
         
     def forward(self, x):
-        # x -= -4.0
-        # x /= 8.0
-        x -= x.min(1, keepdim=True)[0]
-        x /= x.max(1, keepdim=True)[0]
-
         x = F.relu(self.norm_fc1(self.fc1(x)))
         x = F.relu(self.norm_fc2(self.fc2(x)))
         x = F.relu(self.norm_fc3(self.fc3(x)))
@@ -79,6 +69,17 @@ class ArcFace_MLP(torch.nn.Module):
         y_pred = torch.argmax(cosine, dim=1)
 
         return face_embedd, cosine, prob_pred, y_pred
+
+    def infer_input_size(self, face_embed_type='3dmm'):
+        if face_embed_type == 'arcface':
+            input_size = 512            # ArcFace embedding (512)
+        elif face_embed_type == '3dmm':
+            input_size = 300            # 3DMM embedding (300)
+        elif face_embed_type == 'arcface-3dmm':
+            input_size = 812            # ArcFace (512) + 3DMM embedding (300)
+        elif face_embed_type == 'pc_vertices':
+            input_size = (5023,3)       # FLAME Point Cloud (5023,3)
+        return input_size
 
 
 class FaceClassifier1_MLP(torch.nn.Module):
@@ -182,10 +183,27 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # Bernardo
         if self.cfg.model.face_embed == 'arcface':
             face_embed = identity_code            # ArcFace embedding (512)
+            face_embed -= face_embed.min(1, keepdim=True)[0]
+            face_embed /= face_embed.max(1, keepdim=True)[0]
+
         elif self.cfg.model.face_embed == '3dmm':
             face_embed = pred_shape_code          # 3DMM embedding (300)
+            face_embed -= face_embed.min(1, keepdim=True)[0]
+            face_embed /= face_embed.max(1, keepdim=True)[0]
+
+        elif self.cfg.model.face_embed == 'arcface-3dmm':
+            norm_identity_code = identity_code - identity_code.min(1, keepdim=True)[0]
+            norm_identity_code /= norm_identity_code.max(1, keepdim=True)[0]
+
+            norm_pred_shape_code = pred_shape_code - pred_shape_code.min(1, keepdim=True)[0]
+            norm_pred_shape_code /= norm_pred_shape_code.max(1, keepdim=True)[0]
+
+            face_embed = torch.cat((norm_identity_code, norm_pred_shape_code), dim=1)
+
         elif self.cfg.model.face_embed == 'pc_vertices':
             face_embed = pred_canonical_vertices  # FLAME Point Cloud (5023)
+
+
 
         face_embedd, logits_pred, prob_pred, y_pred = self.faceClassifier(face_embed)
         
@@ -263,8 +281,8 @@ class MICAMultitaskFacerecognition1(BaseModel):
     def compute_losses(self, configs, input, encoder_output, decoder_output):
         losses = {}
 
-        # pred_verts = decoder_output['pred_canonical_shape_vertices']         # original
-        pred_verts = decoder_output['pred_canonical_shape_vertices'].detach()  # Bernardo
+        pred_verts = decoder_output['pred_canonical_shape_vertices']         # original
+        # pred_verts = decoder_output['pred_canonical_shape_vertices'].detach()  # Bernardo
         gt_verts = decoder_output['flame_verts_shape'].detach()
 
         pred_verts_shape_canonical_diff = (pred_verts - gt_verts).abs()
