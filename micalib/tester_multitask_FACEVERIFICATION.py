@@ -55,8 +55,9 @@ input_std = 127.5
 MLFW_PICTURES = '/datasets1/bjgbiesseck/MLFW/aligned'
 MLFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/MLFW/pairs.txt'
 
-LFW_PICTURES = '/datasets1/bjgbiesseck/lfw'
-LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairs.txt'
+# LFW_PICTURES = '/datasets1/bjgbiesseck/lfw'
+LFW_PICTURES = '/datasets1/bjgbiesseck/lfw_cropped_aligned'
+LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw_cropped_aligned/pairs.txt'
 
 class TesterMultitaskFacerverification(object):
     def __init__(self, nfc_model, config=None, device=None):
@@ -178,7 +179,8 @@ class TesterMultitaskFacerverification(object):
         arcface = []
         for i, pair in enumerate(all_pairs):
             path_img0, path_img1, label_pair = pair
-            print(f'tester_multitask_FACEVERIFICATION - create_mlfw_cache - {i}/{len(all_pairs)-1} ({path_img0}, {path_img1}, {label_pair})')
+            print('\x1b[2K', end='')
+            print(f'tester_multitask_FACEVERIFICATION - create_mlfw_cache - {i}/{len(all_pairs)-1} ({path_img0}, {path_img1}, {label_pair})', end='\r')
             img0 = imread(path_img0)[:, :, :3]
             img1 = imread(path_img1)[:, :, :3]
             
@@ -190,75 +192,21 @@ class TesterMultitaskFacerverification(object):
         # torch.save(cache, cache_file_name)         # Bernardo
         return self.cache_to_cuda(cache)
 
-    # Bernardo
-    def detect_crop_face(self, img):
-        # images = []
-        app = FaceAnalysis(name='antelopev2', providers=['CUDAExecutionProvider'])
-        app.prepare(ctx_id=0, det_size=(224, 224), det_thresh=0.1)
-        bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')
-        if bboxes.shape[0] != 1:
-            logger.error('Face not detected!')
-            # return images
-            return None
-        i = 0
-        bbox = bboxes[i, 0:4]
-        det_score = bboxes[i, 4]
-        kps = None
-        if kpss is not None:
-            kps = kpss[i]
-        face = Face(bbox=bbox, kps=kps, det_score=det_score)
-        aimg = face_align.norm_crop(img, landmark=face.kps)
-        blob = cv2.dnn.blobFromImages([aimg], 1.0 / input_std, (112, 112), (input_mean, input_mean, input_mean), swapRB=True)
-
-        # images.append(torch.tensor(blob[0])[None])
-        # return images
-        return blob[0]
+    
 
     # Bernardo
     def create_lfw_cache(self, output_folder='lfw_cropped_aligned'):
         cache_file_name = 'test_lfw_cache.pt'      # Bernardo
         cache = {}
 
-
-        # if os.path.exists(cache_file_name):
-        #     cache = self.cache_to_cuda(torch.load(cache_file_name))
-        #     return cache
-
-        output_path = '/'.join(LFW_PICTURES.split('/')[:-1]) + '/' + output_folder
-        # print(f'create_lfw_cache - output_path: {output_path}')
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
-
-            app = FaceAnalysis(name='antelopev2', providers=['CUDAExecutionProvider'])
-            app.prepare(ctx_id=0, det_size=(224, 224), det_thresh=0.4)
-            for actor in tqdm(sorted(os.listdir(LFW_PICTURES))):
-                output_path_folder = output_path + '/' + actor
-                os.makedirs(output_path_folder)
-                image_paths = sorted(glob(LFW_PICTURES + '/' + actor + '/*.jpg'))
-                for image_path in image_paths:
-                    # print(f'create_lfw_cache - image_path: {image_path}')
-                    image = imread(image_path)[:, :, :3]
-                    print(f'create_lfw_cache - image.shape: {image.shape}')
-                    crop_size = 224
-                    image = image / 255.
-
-                    # arcface += self.process_image(cv2.cvtColor(dst_image.astype(np.float32) * 255.0, cv2.COLOR_RGB2BGR), app)
-                    croped_face_img = self.detect_crop_face(cv2.cvtColor(image.astype(np.float32) * 255.0, cv2.COLOR_RGB2BGR))
-                    output_image_path = output_path_folder + '/' + image_path.split('/')[-1]
-                    print(f'create_lfw_cache - croped_face_img.shape: {croped_face_img.shape}')
-                    imsave(output_image_path, croped_face_img)
-                    # images, arcface = self.process_folder(folder, app)
-                    # cache[folder] = (images, arcface)
-
-                    sys.exit(0)
-
-        file_ext = '.jpg'
+        file_ext = '.png'
         all_pairs, pos_pair_label, neg_pair_label = LFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_file(LFW_VERIF_PAIRS_LIST, LFW_PICTURES, file_ext)
 
         arcface = []
         for i, pair in enumerate(all_pairs):
             path_img0, path_img1, label_pair = pair
-            print(f'tester_multitask_FACEVERIFICATION - create_lfw_cache - {i}/{len(all_pairs)-1} ({path_img0}, {path_img1}, {label_pair})')
+            print('\x1b[2K', end='')
+            print(f'tester_multitask_FACEVERIFICATION - create_lfw_cache - {i}/{len(all_pairs)-1} ({path_img0}, {path_img1}, {label_pair})', end='\r')
             img0 = imread(path_img0)[:, :, :3]
             img1 = imread(path_img1)[:, :, :3]
             
@@ -286,6 +234,7 @@ class TesterMultitaskFacerverification(object):
                 # face_embedd = opdict['logits_pred']
 
                 cos_sims[i] = F.cosine_similarity(F.normalize(torch.unsqueeze(face_embedd[0], 0)), F.normalize(torch.unsqueeze(face_embedd[1], 0)))
+                print('\x1b[2K', end='')
                 print(f'tester_multitask_FACEVERIFICATION - get_all_distances - {i}/{len(cache_keys)-1} - pair_label: {pair_label}, cos_sims[{i}]: {cos_sims[i]}', end='\r')
 
         return cos_sims
@@ -293,14 +242,16 @@ class TesterMultitaskFacerverification(object):
 
     # Bernardo
     def find_best_treshold(self, cache, cos_sims):
-        start, end = 0, 1
-        step = 0.01
+        best_tresh = 0
+        best_acc = 0
+        
+        start, end, step = 0, 1, 0.01
         treshs = torch.arange(start, end+step, step)
-        for tresh in treshs:
+        for i, tresh in enumerate(treshs):
+            tresh = torch.round(tresh, decimals=3)
             tp, fp, tn, fn, acc = 0, 0, 0, 0, 0
             for i, cos_sim in enumerate(cos_sims):
                 _, _, pair_label = cache[i]
-
                 if pair_label == 1:
                     if cos_sim >= tresh:
                         tp += 1
@@ -312,36 +263,38 @@ class TesterMultitaskFacerverification(object):
                     else:
                         fp += 1
 
-                acc = (tp + tn) / (tp + tn + fp + fn)
+            acc = round((tp + tn) / (tp + tn + fp + fn), 4)
+            # print(f'tester_multitask_FACEVERIFICATION - {i}/{treshs.size()[0]-1} - tresh: {tresh} - acc: {acc}')
 
-            print(f'tester_multitask_FACEVERIFICATION - mlfw - tresh: {tresh},  tp: {tp},  fp: {fp},  tn: {tn},  fn: {fn},  acc: {acc}')
+            if acc > best_acc:
+                best_acc = acc
+                best_tresh = tresh
+            
+            print('\x1b[2K', end='')
+            print(f'tester_multitask_FACEVERIFICATION - {i}/{len(treshs)-1} - tresh: {tresh}', end='\r')
+
+        return best_tresh, best_acc
 
 
     # Bernardo
-    def mlfw(self, best_id):
-        logger.info(f"[TESTER] MLFW testing has begun!")
+    def evaluate_model(self, best_id, dataset_name):
+        logger.info(f"[TESTER] {dataset_name} testing has begun!")
         self.nfc.eval()
-        
-        logger.info(f"[TESTER] Creating MLFW cache...")
-        # cache = self.create_now_cache()   # original
-        cache = self.create_mlfw_cache()    # Bernardo
-        
+
+        logger.info(f"[TESTER] Creating {dataset_name} cache...")
+        # cache = self.create_now_cache()       # original
+        if dataset_name.upper() == 'MLFW':
+            cache = self.create_mlfw_cache()    # Bernardo
+        elif dataset_name.upper() == 'LFW':
+            cache = self.create_lfw_cache()     # Bernardo
+        else:
+            logger.error('[TESTER] Test dataset was not specified: ' + str(dataset_name))
+            sys.exit(0)
+
         logger.info(f"Computing pair distances...")
         cos_sims = self.get_all_distances(cache)
 
-        self.find_best_treshold(cache, cos_sims)
-
-    # Bernardo
-    def lfw(self, best_id):
-        logger.info(f"[TESTER] LFW testing has begun!")
-        self.nfc.eval()
-        
-        logger.info(f"[TESTER] Creating LFW cache...")
-        # cache = self.create_now_cache()   # original
-        cache = self.create_lfw_cache()    # Bernardo
-        
-        logger.info(f"Computing pair distances...")
-        cos_sims = self.get_all_distances(cache)
-
-        self.find_best_treshold(cache, cos_sims)
-        
+        print()
+        logger.info(f"Findind best treshold...")
+        best_tresh, best_acc = self.find_best_treshold(cache, cos_sims)
+        print(f'\nbest_tresh: {best_tresh},   best_acc: {best_acc}')

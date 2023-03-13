@@ -94,13 +94,7 @@ def test_multitask_facerecognition1(rank, world_size, cfg, args):
         logger.error('[TESTER] Test dataset was not specified!')
     '''
 
-    # Bernardo
-    if args.test_dataset.upper() == 'MLFW':
-        tester.test_mlfw(args.checkpoint)
-    elif args.test_dataset.upper() == 'LFW':
-        tester.test_lfw(args.checkpoint)
-    else:
-        logger.error('[TESTER] Test dataset was not specified: ' + str(args.test_dataset))
+    tester.evaluate_model(args.checkpoint, args.test_dataset.upper())
     
     logger.info('[TESTER] Test has ended!')
 
