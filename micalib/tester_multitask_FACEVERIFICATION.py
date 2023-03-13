@@ -277,8 +277,10 @@ class TesterMultitaskFacerverification(object):
 
 
     # Bernardo
-    def evaluate_model(self, best_id, dataset_name):
+    def evaluate_model(self, checkpoint, dataset_name):
         logger.info(f"[TESTER] {dataset_name} testing has begun!")
+        self.load_checkpoint(checkpoint)
+        name = self.get_name(checkpoint, id)
         self.nfc.eval()
 
         logger.info(f"[TESTER] Creating {dataset_name} cache...")
