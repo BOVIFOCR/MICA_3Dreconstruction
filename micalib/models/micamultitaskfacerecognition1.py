@@ -183,8 +183,10 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # Bernardo
         if self.cfg.model.face_embed == 'arcface':
             face_embed = identity_code            # ArcFace embedding (512)
-            face_embed -= face_embed.min(1, keepdim=True)[0]
-            face_embed /= face_embed.max(1, keepdim=True)[0]
+            # face_embed -= face_embed.min(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
+            # face_embed /= face_embed.max(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
+            face_embed = face_embed - face_embed.min(1, keepdim=True)[0]
+            face_embed = face_embed /face_embed.max(1, keepdim=True)[0]     
 
         elif self.cfg.model.face_embed == '3dmm':
             face_embed = pred_shape_code          # 3DMM embedding (300)
@@ -202,8 +204,6 @@ class MICAMultitaskFacerecognition1(BaseModel):
 
         elif self.cfg.model.face_embed == 'pc_vertices':
             face_embed = pred_canonical_vertices  # FLAME Point Cloud (5023)
-
-
 
         face_embedd, logits_pred, prob_pred, y_pred = self.faceClassifier(face_embed)
         
@@ -227,6 +227,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
         }
 
         return output
+
 
     # Bernardo
     # From: https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html
@@ -306,7 +307,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # losses['class_loss'] = self.cross_entropy_loss2(logits_pred, y_true)
         # losses['class_loss'] = configs.train.lambda2 * self.cross_entropy_loss2(logits_pred, y_true)
         losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
-        
+
         metrics = {}
         metrics['acc'] = self.compute_accuracy(y_pred, y_true)
 
