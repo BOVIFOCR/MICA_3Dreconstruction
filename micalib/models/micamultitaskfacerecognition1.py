@@ -56,22 +56,25 @@ class ArcFace_MLP(torch.nn.Module):
         # nn.init.xavier_uniform_(self.weight)
         
     def forward(self, x):
-        x = F.relu(self.norm_fc1(self.fc1(x)))
-        x = F.relu(self.norm_fc2(self.fc2(x)))
-        x = F.relu(self.norm_fc3(self.fc3(x)))
-        x = self.fc4(x)
-        
-        face_embedd = x
-        # face_embedd = F.linear(x, self.weight)
-
-        cosine = F.linear(F.normalize(x), F.normalize(self.weight))
-        prob_pred = torch.nn.functional.softmax(cosine, dim=1)
-        y_pred = torch.argmax(cosine, dim=1)
+        if self.cfg.model.face_embed == 'original-arcface':
+            face_embedd = x
+            cosine = None
+            prob_pred = None
+            y_pred = None
+        else:
+            x = F.relu(self.norm_fc1(self.fc1(x)))
+            x = F.relu(self.norm_fc2(self.fc2(x)))
+            x = F.relu(self.norm_fc3(self.fc3(x)))
+            x = self.fc4(x)
+            face_embedd = x
+            cosine = F.linear(F.normalize(x), F.normalize(self.weight))
+            prob_pred = torch.nn.functional.softmax(cosine, dim=1)
+            y_pred = torch.argmax(cosine, dim=1)
 
         return face_embedd, cosine, prob_pred, y_pred
 
     def infer_input_size(self, face_embed_type='3dmm'):
-        if face_embed_type == 'arcface':
+        if face_embed_type == 'arcface' or face_embed_type == 'original-arcface':
             input_size = 512            # ArcFace embedding (512)
         elif face_embed_type == '3dmm':
             input_size = 300            # 3DMM embedding (300)
@@ -181,7 +184,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # }
 
         # Bernardo
-        if self.cfg.model.face_embed == 'arcface':
+        if self.cfg.model.face_embed == 'arcface' or self.cfg.model.face_embed == 'original-arcface':
             face_embed = identity_code            # ArcFace embedding (512)
             # face_embed -= face_embed.min(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
             # face_embed /= face_embed.max(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
@@ -282,8 +285,10 @@ class MICAMultitaskFacerecognition1(BaseModel):
     def compute_losses(self, configs, input, encoder_output, decoder_output):
         losses = {}
 
-        pred_verts = decoder_output['pred_canonical_shape_vertices']         # original
-        # pred_verts = decoder_output['pred_canonical_shape_vertices'].detach()  # Bernardo
+        if configs.train.train_reconstruction:
+            pred_verts = decoder_output['pred_canonical_shape_vertices']         # original
+        else:
+            pred_verts = decoder_output['pred_canonical_shape_vertices'].detach()  # Bernardo
         gt_verts = decoder_output['flame_verts_shape'].detach()
 
         pred_verts_shape_canonical_diff = (pred_verts - gt_verts).abs()
@@ -306,7 +311,11 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # losses['class_loss'] = self.cross_entropy_loss2(prob_pred, y_true)
         # losses['class_loss'] = self.cross_entropy_loss2(logits_pred, y_true)
         # losses['class_loss'] = configs.train.lambda2 * self.cross_entropy_loss2(logits_pred, y_true)
-        losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
+
+        if configs.train.train_recognition:
+            losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
+        else:
+            losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred.detach(), y_true.detach())
 
         metrics = {}
         metrics['acc'] = self.compute_accuracy(y_pred, y_true)

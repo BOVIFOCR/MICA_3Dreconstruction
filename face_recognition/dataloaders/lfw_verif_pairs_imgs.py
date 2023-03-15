@@ -18,9 +18,13 @@ class LFW_Verif_Pairs_Images:
             # print('all_lines:', all_lines)
 
             line = all_lines[0].strip('\n').split('\t')
-            num_folds, num_pair_type_per_fold = int(line[0]), int(line[1])
-            num_total_pairs = num_folds * num_pair_type_per_fold * 2
+            if len(line) == 1:
+                num_folds = 1
+                num_pair_type_per_fold = int(line[0])
+            else:
+                num_folds, num_pair_type_per_fold = int(line[0]), int(line[1])
 
+            num_total_pairs = num_folds * num_pair_type_per_fold * 2
             all_pairs = [ None ] * num_total_pairs
             # for i in range(num_total_pairs):
             l = 1    # Ignores first line

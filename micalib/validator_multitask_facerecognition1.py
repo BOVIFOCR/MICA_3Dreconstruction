@@ -127,16 +127,20 @@ class ValidatorMultitaskFacerecognition1(object):
                 # losses = self.nfc.compute_losses(self.cfg, None, None, opdict)                                   # Bernardo
                 losses, metrics = self.nfc.compute_losses(self.cfg, None, None, opdict)                            # Bernardo
 
-                loss = losses['pred_verts_shape_canonical_diff']                                                   # Bernardo
-                # optdicts.append((opdict, images, dataset, actors, loss))          # original
-                optdicts.append((opdict, images, dataset, actors, loss, metrics))   # Bernardo
-
                 # Bernardo
                 all_loss = 0.
                 losses_key = losses.keys()
                 for key in losses_key:
                     all_loss = all_loss + losses[key]
                 losses['all_loss'] = all_loss
+
+
+                loss = losses['pred_verts_shape_canonical_diff']                    # Bernardo
+                # loss = losses['all_loss']                                         # Bernardo
+
+                # optdicts.append((opdict, images, dataset, actors, loss))          # original
+                optdicts.append((opdict, images, dataset, actors, loss, metrics))   # Bernardo
+
 
             # Calculate averages
             weighted_average = 0.
@@ -145,7 +149,7 @@ class ValidatorMultitaskFacerecognition1(object):
             avg_acc = 0.   # Bernardo
             for optdict in optdicts:
                 # opdict, images, dataset, actors, loss = optdict   # original
-                opdict, images, dataset, actors, loss, metric = optdict   # original
+                opdict, images, dataset, actors, loss, metric = optdict   # Bernardo
                 name = dataset[0]
                 average += loss
                 avg_acc += metric['acc']
@@ -188,7 +192,6 @@ class ValidatorMultitaskFacerecognition1(object):
             self.trainer.writer.add_scalar(f'val/smoothed_average', smoothed, global_step=self.trainer.global_step)
 
             # self.now()    # Originally commented
-            # self.now()    # Uncommented by Bernardo
 
             # Print embeddings every nth validation step
             if self.trainer.global_step % (self.cfg.train.val_steps * 5) == 0:
@@ -199,7 +202,8 @@ class ValidatorMultitaskFacerecognition1(object):
 
             # Render predicted meshes
             if self.trainer.global_step % self.cfg.train.val_save_img != 0:
-                return
+                # return                           # original
+                return average, smoothed, avg_acc  # Bernardo
 
             pred_canonical_shape_vertices = torch.empty(0, 3, 512, 512).cuda()
             flame_verts_shape = torch.empty(0, 3, 512, 512).cuda()
@@ -226,6 +230,10 @@ class ValidatorMultitaskFacerecognition1(object):
 
             savepath = os.path.join(self.cfg.output_dir, self.cfg.train.val_vis_dir, f'{self.trainer.global_step:08}.jpg')
             util.visualize_grid(visdict, savepath, size=512)
+
+            # Bernardo
+            return average, smoothed, avg_acc
+
 
     def now(self):
         logger.info(f'[Validator] NoW testing has begun...')

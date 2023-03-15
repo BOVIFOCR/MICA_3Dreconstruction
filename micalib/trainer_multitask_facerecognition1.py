@@ -82,6 +82,9 @@ class TrainerMultitaskFacerecognition1(object):
 
         # Bernardo
         self.labels_map = {}
+        self.early_stop = False
+        self.early_stop_tolerance = self.cfg.train.early_stop_tolerance   # std/avg (Bernardo)
+        self.early_stop_patience = self.cfg.train.early_stop_patience     # Bernardo
         
         # reset optimizer if loaded from pretrained model
         if self.cfg.train.reset_optimizer:
@@ -115,21 +118,24 @@ class TrainerMultitaskFacerecognition1(object):
         dist.barrier()
         map_location = {'cuda:%d' % 0: 'cuda:%d' % self.device}
         model_path = os.path.join(self.cfg.output_dir, 'model.tar')
-        if os.path.exists(self.cfg.pretrained_model_path):
+
+        # if os.path.exists(self.cfg.pretrained_model_path):                                   # original
+        if os.path.exists(self.cfg.pretrained_model_path) and self.cfg.model.use_pretrained:   # Bernardo
             model_path = self.cfg.pretrained_model_path
         if os.path.exists(model_path):
             checkpoint = torch.load(model_path, map_location)
 
-            # COMMENTED BY BERNARDO DUE BECAUSE ORIGINAL MODEL DOESN'T HAVE FACE CLASSIFICATION LAYERS
+            # COMMENTED BY BERNARDO DUE THE ORIGINAL MODEL HASN'T FACE CLASSIFICATION LAYERS
             # if 'opt' in checkpoint:
             #     self.opt.load_state_dict(checkpoint['opt'])
-            
+
             if 'scheduler' in checkpoint:
                 self.scheduler.load_state_dict(checkpoint['scheduler'])
             if 'epoch' in checkpoint:
                 self.epoch = checkpoint['epoch']
             if 'global_step' in checkpoint:
                 self.global_step = checkpoint['global_step']
+
             logger.info(f"[TRAINER] Resume training from {model_path}")
             logger.info(f"[TRAINER] Start from step {self.global_step}")
             logger.info(f"[TRAINER] Start from epoch {self.epoch}")
@@ -207,7 +213,8 @@ class TrainerMultitaskFacerecognition1(object):
         return losses, opdict
 
     def validation_step(self):
-        self.validator.run()
+        average_loss, smoothed_loss, avg_acc_fr = self.validator.run()
+        return average_loss, smoothed_loss, avg_acc_fr
 
     def evaluation_step(self):
         pass
@@ -265,22 +272,24 @@ class TrainerMultitaskFacerecognition1(object):
     def fit(self):
         self.prepare_data()
         iters_every_epoch = int(len(self.train_dataset) / self.batch_size)
-        
+
         # max_epochs = int(self.cfg.train.max_steps / iters_every_epoch)     # original
         # start_epoch = self.epoch                                           # original
         max_epochs = int(self.cfg.train.max_steps / (self.batch_size * 10))  # Bernardo
         start_epoch = 0                                                      # Bernardo
 
-        # print('trainer.py: Trainer: fit(): start_epoch:', start_epoch, '    max_epochs:', max_epochs)   # Bernardo
-        for epoch in range(start_epoch, max_epochs):
+        # For early stopping (Bernardo)
+        all_val_average_loss_step, all_val_smoothed_loss_step, all_val_avg_acc_fr_step = [], [], []
+
+        # for epoch in range(start_epoch, max_epochs):   # original
+        while not self.early_stop:                       # Bernardo
 
             # Bernardo
             self.cf_matrix_epoch_train = np.zeros(shape=(self.cfg.model.num_classes, self.cfg.model.num_classes), dtype=np.float32)
 
             # print('trainer.py: Trainer: fit(): epoch:', epoch, '    iters_every_epoch:', iters_every_epoch)   # Bernardo
-            for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{epoch + 1}/{max_epochs}]"):
-                # print('    step:', step, '    self.global_step:', self.global_step, '    self.cfg.train.max_steps:', self.cfg.train.max_steps)
-                
+            # for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{epoch + 1}/{max_epochs}]"):
+            for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{self.epoch}]"):
                 # if self.global_step > self.cfg.train.max_steps:   # Original (commented by Bernardo)
                 #     break                                         # Original (commented by Bernardo) 
                 try:
@@ -307,8 +316,8 @@ class TrainerMultitaskFacerecognition1(object):
 
                 if self.global_step % self.cfg.train.log_steps == 0 and self.device == 0:
                     loss_info = f"\n" \
-                                f"  Epoch: {epoch}\n" \
-                                f"  Step: {self.global_step}\n" \
+                                f"  Epoch: {self.epoch}\n" \
+                                f"  Global step: {self.global_step}\n" \
                                 f"  Iter: {step}/{iters_every_epoch}\n" \
                                 f"  LR: {self.opt.param_groups[0]['lr']}\n" \
                                 f"  arcface_lr: {self.opt.param_groups[1]['lr']}\n" \
@@ -322,6 +331,7 @@ class TrainerMultitaskFacerecognition1(object):
                     # Bernardo
                     train_acc = opdict['metrics']['acc']
                     loss_info = loss_info + f'  acc: {train_acc:.4f}\n'
+                    loss_info = loss_info + f'  self.cfg.output_dir: {self.cfg.output_dir}\n'
                     self.writer.add_scalar('train_loss/acc:', train_acc, global_step=self.global_step)
 
                     logger.info(loss_info)
@@ -364,12 +374,30 @@ class TrainerMultitaskFacerecognition1(object):
                     visdict["flame_verts_shape"] = flame_verts_shape
                     visdict["images"] = input_images
 
-                    savepath = os.path.join(self.cfg.output_dir, 'train_images/train_' + str(epoch) + '.jpg')
+                    savepath = os.path.join(self.cfg.output_dir, 'train_images/train_' + str(self.epoch) + '.jpg')
                     util.visualize_grid(visdict, savepath, size=512)
 
                 if self.global_step % self.cfg.train.val_steps == 0:
-                    # self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model' + '.tar'))   # Added by Bernardo
-                    self.validation_step()
+                    # self.validation_step()   # original
+                    val_average_loss_step, val_smoothed_loss_step, val_avg_acc_fr_step = self.validation_step()   # Bernardo
+                    all_val_average_loss_step.append(val_average_loss_step)
+                    all_val_smoothed_loss_step.append(val_smoothed_loss_step)
+                    all_val_avg_acc_fr_step.append(val_avg_acc_fr_step)
+
+                    # # early stopping (Bernardo)
+                    # std_val_average_loss_step = np.std(np.array(all_val_average_loss_step[-self.early_stop_patience:]))
+                    # mean_val_average_loss_step = np.mean(np.array(all_val_average_loss_step[-self.early_stop_patience:]))
+                    # std_over_mean = std_val_average_loss_step / mean_val_average_loss_step
+                    # print(f'all_val_average_loss_step: {all_val_average_loss_step}')
+                    # print(f'std_val_average_loss_step: {std_val_average_loss_step}')
+                    # print(f'mean_val_average_loss_step: {mean_val_average_loss_step}')
+                    # print(f'std_over_mean: {std_over_mean}')
+                    # print(f'self.early_stop_tolerance: {self.early_stop_tolerance}')
+                    # print()
+                    # if len(all_val_average_loss_step) >= self.early_stop_patience:
+                    #     if std_over_mean <= self.early_stop_tolerance:
+                    #         self.early_stop = True
+                    #         print('Early stop!')
 
                 if self.global_step % self.cfg.train.lr_update_step == 0:
                     self.scheduler.step()
@@ -382,8 +410,16 @@ class TrainerMultitaskFacerecognition1(object):
 
                 if self.global_step % self.cfg.train.checkpoint_epochs_steps == 0:
                     self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model_' + str(self.global_step) + '.tar'))
-                
+
+            # # early stopping (Bernardo)
+            # if self.epoch > 0:
+            #     if val_average_loss_epoch >= last_val_average_loss_epoch + 0.1:
+            #         self.early_stop = True
+            #         print('Early stop!')
+            # print(f'val_average_loss_epoch: {val_average_loss_epoch},   last_val_average_loss_epoch: {last_val_average_loss_epoch}')
+            # last_val_average_loss_epoch = val_average_loss_epoch
+
             self.epoch += 1
 
         self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model' + '.tar'))
-        logger.info(f'[TRAINER] Fitting has ended!')
+        logger.info(f'[TRAINER] Fitting has ended! - epoch: {self.epoch}')

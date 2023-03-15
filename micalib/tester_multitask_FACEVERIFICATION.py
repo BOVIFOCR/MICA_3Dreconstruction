@@ -57,7 +57,8 @@ MLFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/MLFW/pairs.txt'
 
 # LFW_PICTURES = '/datasets1/bjgbiesseck/lfw'
 LFW_PICTURES = '/datasets1/bjgbiesseck/lfw_cropped_aligned'
-LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw_cropped_aligned/pairs.txt'
+LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairs.txt'
+# LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairsDevTest.txt'
 
 class TesterMultitaskFacerverification(object):
     def __init__(self, nfc_model, config=None, device=None):
@@ -269,7 +270,7 @@ class TesterMultitaskFacerverification(object):
             if acc > best_acc:
                 best_acc = acc
                 best_tresh = tresh
-            
+
             print('\x1b[2K', end='')
             print(f'tester_multitask_FACEVERIFICATION - {i}/{len(treshs)-1} - tresh: {tresh}', end='\r')
 
@@ -277,10 +278,11 @@ class TesterMultitaskFacerverification(object):
 
 
     # Bernardo
-    def evaluate_model(self, checkpoint, dataset_name):
+    def evaluate_model(self, checkpoint='', dataset_name=''):
         logger.info(f"[TESTER] {dataset_name} testing has begun!")
-        self.load_checkpoint(checkpoint)
-        name = self.get_name(checkpoint, id)
+        if checkpoint.endswith('.tar') and os.path.isfile(checkpoint):
+            self.load_checkpoint(checkpoint)
+            name = self.get_name(checkpoint, id)
         self.nfc.eval()
 
         logger.info(f"[TESTER] Creating {dataset_name} cache...")
