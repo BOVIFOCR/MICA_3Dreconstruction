@@ -99,18 +99,19 @@ class TrainerMultitaskFacerecognition1(object):
 
     def configure_optimizers(self):
         # original
-        self.opt = torch.optim.AdamW(
-            lr=self.cfg.train.lr,
-            weight_decay=self.cfg.train.weight_decay,
-            params=self.nfc.parameters_to_optimize(),
-            amsgrad=False)
-
-        # # Bernardo
-        # self.opt = torch.optim.SGD(
+        # self.opt = torch.optim.AdamW(
+        #     lr=self.cfg.train.lr,
+        #     weight_decay=self.cfg.train.weight_decay,
         #     params=self.nfc.parameters_to_optimize(),
-        #     lr=self.cfg.train.lr, momentum=0.9, weight_decay=self.cfg.train.weight_decay)
+        #     amsgrad=False)
+        # self.scheduler = torch.optim.lr_scheduler.StepLR(self.opt, step_size=1, gamma=0.1, verbose=True)   # original
 
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.opt, step_size=1, gamma=0.1)
+
+        # Bernardo
+        self.opt = torch.optim.SGD(
+            params=self.nfc.parameters_to_optimize(),
+            lr=self.cfg.train.lr, momentum=0.9, weight_decay=self.cfg.train.weight_decay)
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=self.opt, T_max=3e+5, eta_min=self.cfg.train.lr, last_epoch=-1, verbose=True)
 
     def load_checkpoint(self):
         self.epoch = 0
@@ -310,7 +311,14 @@ class TrainerMultitaskFacerecognition1(object):
                 self.cf_matrix_epoch_train += cf_matrix_batch
 
                 all_loss = losses['all_loss']
-                all_loss.backward()
+
+                # all_loss.backward()   # original
+                if self.cfg.train.loss_mode == 'sum_all':
+                    all_loss.backward()
+                elif self.cfg.train.loss_mode == 'separate':
+                    for key in losses.keys():
+                        losses[key].backward(retain_graph=True)     # Bernardo (experimenting train each loss separate)
+
                 self.opt.step()
                 self.global_step += 1
 

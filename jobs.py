@@ -94,7 +94,7 @@ def test_multitask_facerecognition1(rank, world_size, cfg, args):
         logger.error('[TESTER] Test dataset was not specified!')
     '''
 
-    tester.evaluate_model(args.checkpoint, args.test_dataset.upper())
+    tester.evaluate_model(args.checkpoint, args.test_dataset.upper(), args)
     
     logger.info('[TESTER] Test has ended!')
 

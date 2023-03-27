@@ -184,17 +184,23 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # }
 
         # Bernardo
-        if self.cfg.model.face_embed == 'arcface' or self.cfg.model.face_embed == 'original-arcface':
+        if self.cfg.model.face_embed == 'original-arcface':
+            face_embed = identity_code
+
+        elif self.cfg.model.face_embed == 'arcface':
             face_embed = identity_code            # ArcFace embedding (512)
             # face_embed -= face_embed.min(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
             # face_embed /= face_embed.max(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
             face_embed = face_embed - face_embed.min(1, keepdim=True)[0]
-            face_embed = face_embed /face_embed.max(1, keepdim=True)[0]     
+            face_embed = face_embed / face_embed.max(1, keepdim=True)[0]
 
         elif self.cfg.model.face_embed == '3dmm':
             face_embed = pred_shape_code          # 3DMM embedding (300)
-            face_embed -= face_embed.min(1, keepdim=True)[0]
-            face_embed /= face_embed.max(1, keepdim=True)[0]
+            if self.cfg.dataset.norm == '0,1_min-max':
+                face_embed -= face_embed.min(1, keepdim=True)[0]
+                face_embed /= face_embed.max(1, keepdim=True)[0]
+            elif self.cfg.dataset.norm == '-1,1_mean-0':
+                face_embed /= 4.0
 
         elif self.cfg.model.face_embed == 'arcface-3dmm':
             norm_identity_code = identity_code - identity_code.min(1, keepdim=True)[0]

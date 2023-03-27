@@ -7,41 +7,7 @@ from pathlib import Path
 
 
 # BERNARDO
-class LFW_Verif_Pairs_Images:
-
-
-    def load_pairs_samples_protocol_from_bin_folder(self, dataset_path='lfw_from_bin', num_folds=10, num_type_pair_per_fold=300, file_ext='.png'):
-        pos_pair_label = '1'
-        neg_pair_label = '0'
-
-        img_paths = sorted(glob(dataset_path + '/*' + file_ext))
-        # print('img_paths:', img_paths)
-
-        pair_type = True
-        all_pairs = [ None ] * int(len(img_paths) // 2)
-        i = 0
-        while i < len(img_paths):
-            path_sample0 = img_paths[i]
-
-            if i > 0 and i % (num_type_pair_per_fold*2) == 0:
-                pair_type = not pair_type
-
-            i += 1
-            path_sample1 = img_paths[i]
-
-            if pair_type == True:   # positive pair
-                pair_label = pos_pair_label
-            else:
-                pair_label = neg_pair_label
-
-            all_pairs[int(i/2)] = (path_sample0, path_sample1, pair_label)
-            # print(f'{i} - pair_type: {pair_type} - all_pairs[{int(i/2)}]:', all_pairs[int(i/2)])
-            i += 1
-            # sys.exit(0)
-
-        return all_pairs, pos_pair_label, neg_pair_label
-
-
+class TALFW_Verif_Pairs_Images:
     
     def load_pairs_samples_protocol_from_file(self, protocol_file_path='pairs.txt', dataset_path='lfw', file_ext='.jpg'):
         pos_pair_label = '1'
@@ -87,7 +53,7 @@ class LFW_Verif_Pairs_Images:
                     l += 1
 
             # for i in range(len(all_pairs)):
-            #     print(f'lfw_verif_pairs_imgs - load_pairs_samples_protocol_from_file - all_pairs[{i}]: {all_pairs[i]}')
+            #     print(f'talfw_verif_pairs_imgs - load_pairs_samples_protocol_from_file - all_pairs[{i}]: {all_pairs[i]}')
 
             return all_pairs, pos_pair_label, neg_pair_label
 
@@ -95,7 +61,7 @@ class LFW_Verif_Pairs_Images:
     
 
 
-    def make_cropped_lfw_dataset(self, dataset_path='lfw', input_file_ext='.jpg', output_path='lfw_cropped_aligned', output_file_ext='.png'):
+    def make_cropped_talfw_dataset(self, dataset_path='TALFW', input_file_ext='.jpg', output_path='TALFW_cropped_aligned', output_file_ext='.png'):
         import cv2
         from skimage.io import imread, imsave
         from skimage.transform import estimate_transform, warp
@@ -131,15 +97,15 @@ class LFW_Verif_Pairs_Images:
             image_paths = sorted(glob(dataset_path + '/' + actor + '/*' + input_file_ext))
             for image_path in image_paths:
                 print('------------------------')
-                print(f'lfw_verif_pairs_imgs - make_cropped_lfw_dataset - {i}/{len(actors)-1} - {actor} - image_path: {image_path}')
+                print(f'talfw_verif_pairs_imgs - make_cropped_talfw_dataset - {i}/{len(actors)-1} - {actor} - image_path: {image_path}')
                 image = imread(image_path)[:, :, :3]
-                print(f'lfw_verif_pairs_imgs - make_cropped_lfw_dataset - {i}/{len(actors)-1} - {actor} - image.shape: {image.shape}')
-                print(f'lfw_verif_pairs_imgs - make_cropped_lfw_dataset - detecting face...')
+                print(f'talfw_verif_pairs_imgs - make_cropped_talfw_dataset - {i}/{len(actors)-1} - {actor} - image.shape: {image.shape}')
+                print(f'talfw_verif_pairs_imgs - make_cropped_talfw_dataset - detecting face...')
                 croped_face_img = detect_crop_face(image, app)
                 output_image_path = output_path_folder + '/' + image_path.split('/')[-1].replace(input_file_ext, output_file_ext)
-                print(f'lfw_verif_pairs_imgs - make_cropped_lfw_dataset - {i}/{len(actors)-1} - {actor} - croped_face_img.shape: {croped_face_img.shape}')
+                print(f'talfw_verif_pairs_imgs - make_cropped_talfw_dataset - {i}/{len(actors)-1} - {actor} - croped_face_img.shape: {croped_face_img.shape}')
                 imsave(output_image_path, croped_face_img)
-                print(f'lfw_verif_pairs_imgs - make_cropped_lfw_dataset - {i}/{len(actors)-1} - {actor} - output_image_path: {output_image_path}')
+                print(f'talfw_verif_pairs_imgs - make_cropped_talfw_dataset - {i}/{len(actors)-1} - {actor} - output_image_path: {output_image_path}')
 
                 # input('PAUSED')
                 # sys.exit(0)
@@ -153,11 +119,9 @@ if __name__ == '__main__':
     # file_ext='.jpg'
     # all_pairs, pos_pair_label, neg_pair_label = LFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_file(protocol_file_path, dataset_path, file_ext)
     # # for i in range(len(all_pairs)):
-    # #     print(f'lfw_verif_pairs_imgs - load_pairs_samples_protocol_from_file - all_pairs[{i}]: {all_pairs[i]}')
+    # #     print(f'talfw_verif_pairs_imgs - load_pairs_samples_protocol_from_file - all_pairs[{i}]: {all_pairs[i]}')
 
-    # dataset_path = '/datasets1/bjgbiesseck/lfw'
-    # output_path = '/datasets1/bjgbiesseck/lfw_cropped_aligned'
-    # LFW_Verif_Pairs_Images().make_cropped_lfw_dataset(dataset_path=dataset_path, input_file_ext='.jpg', output_path=output_path, output_file_ext='.png')
-
-    dataset_path = '/datasets1/bjgbiesseck/lfw_from_bin'
-    LFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_bin_folder(dataset_path=dataset_path, file_ext='.png')
+    dataset_path = '/datasets1/bjgbiesseck/TALFW'
+    output_path = '/datasets1/bjgbiesseck/TALFW_cropped_aligned'
+    TALFW_Verif_Pairs_Images().make_cropped_talfw_dataset(dataset_path=dataset_path, input_file_ext='.jpg', output_path=output_path, output_file_ext='.png')
+    

@@ -76,6 +76,7 @@ cfg.dataset.n_train = 100000
 cfg.dataset.num_workers = 4
 # cfg.dataset.root = '/home/bjgbiesseck/GitHub/MICA/datasets/MICA/'  # BERNARDO
 cfg.dataset.root = '/datasets1/bjgbiesseck/MICA/'                    # BERNARDO
+cfg.dataset.norm = '0,1_min-max' # BERNARDO
 
 
 # ---------------------------------------------------------------------------- #
@@ -112,6 +113,7 @@ cfg.train.early_stop_tolerance = 0.05  # Bernardo
 cfg.train.early_stop_patience = 5      # Bernardo
 cfg.train.train_reconstruction = True  # Bernardo
 cfg.train.train_recognition = True     # Bernardo
+cfg.train.loss_mode = 'sum_all'        # Bernardo
 cfg.train.weight_decay = 0.0
 cfg.train.lr_update_step = 100000000
 cfg.train.log_dir = 'logs'

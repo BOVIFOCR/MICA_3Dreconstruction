@@ -38,6 +38,7 @@ from utils import util
 # Bernardo
 from face_recognition.dataloaders.mlfw_verif_pairs_imgs import MLFW_Verif_Pairs_Images
 from face_recognition.dataloaders.lfw_verif_pairs_imgs import LFW_Verif_Pairs_Images
+from face_recognition.dataloaders.talfw_verif_pairs_imgs import TALFW_Verif_Pairs_Images
 
 input_mean = 127.5
 input_std = 127.5
@@ -56,9 +57,15 @@ MLFW_PICTURES = '/datasets1/bjgbiesseck/MLFW/aligned'
 MLFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/MLFW/pairs.txt'
 
 # LFW_PICTURES = '/datasets1/bjgbiesseck/lfw'
-LFW_PICTURES = '/datasets1/bjgbiesseck/lfw_cropped_aligned'
-LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairs.txt'
+LFW_PICTURES = '/datasets1/bjgbiesseck/lfw_from_bin'
+# LFW_PICTURES = '/datasets1/bjgbiesseck/lfw_cropped_aligned'
+# LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairs.txt'
 # LFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairsDevTest.txt'
+
+# TALFW_PICTURES = '/datasets1/bjgbiesseck/TALFW'
+TALFW_PICTURES = '/datasets1/bjgbiesseck/TALFW_cropped_aligned'
+TALFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairs.txt'           # use LFW pairs as TALFW doesn't provide verification protocol
+# TALFW_VERIF_PAIRS_LIST = '/datasets1/bjgbiesseck/lfw/pairsDevTest.txt'  # use LFW pairs as TALFW doesn't provide verification protocol
 
 class TesterMultitaskFacerverification(object):
     def __init__(self, nfc_model, config=None, device=None):
@@ -193,7 +200,6 @@ class TesterMultitaskFacerverification(object):
         # torch.save(cache, cache_file_name)         # Bernardo
         return self.cache_to_cuda(cache)
 
-    
 
     # Bernardo
     def create_lfw_cache(self, output_folder='lfw_cropped_aligned'):
@@ -201,7 +207,8 @@ class TesterMultitaskFacerverification(object):
         cache = {}
 
         file_ext = '.png'
-        all_pairs, pos_pair_label, neg_pair_label = LFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_file(LFW_VERIF_PAIRS_LIST, LFW_PICTURES, file_ext)
+        # all_pairs, pos_pair_label, neg_pair_label = LFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_file(LFW_VERIF_PAIRS_LIST, LFW_PICTURES, file_ext)
+        all_pairs, pos_pair_label, neg_pair_label = LFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_bin_folder(LFW_PICTURES, num_folds=10, num_type_pair_per_fold=300, file_ext=file_ext)
 
         arcface = []
         for i, pair in enumerate(all_pairs):
@@ -210,10 +217,10 @@ class TesterMultitaskFacerverification(object):
             print(f'tester_multitask_FACEVERIFICATION - create_lfw_cache - {i}/{len(all_pairs)-1} ({path_img0}, {path_img1}, {label_pair})', end='\r')
             img0 = imread(path_img0)[:, :, :3]
             img1 = imread(path_img1)[:, :, :3]
-            
+
             img0_preproc = self.process_image(img0.astype(np.float32), app=None)
             img1_preproc = self.process_image(img1.astype(np.float32), app=None)
-            
+
             cache[i] = (img0_preproc, img1_preproc, torch.tensor(int(label_pair)))
 
         # torch.save(cache, cache_file_name)         # Bernardo
@@ -221,23 +228,77 @@ class TesterMultitaskFacerverification(object):
 
 
     # Bernardo
-    def get_all_distances(self, cache):
+    def create_talfw_cache(self, output_folder='TALFW_cropped_aligned'):
+        cache_file_name = 'test_TALFW_cache.pt'      # Bernardo
+        cache = {}
+
+        file_ext = '.png'
+        all_pairs, pos_pair_label, neg_pair_label = TALFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_file(TALFW_VERIF_PAIRS_LIST, TALFW_PICTURES, file_ext)
+
+        arcface = []
+        for i, pair in enumerate(all_pairs):
+            path_img0, path_img1, label_pair = pair
+            print('\x1b[2K', end='')
+            print(f'tester_multitask_FACEVERIFICATION - create_talfw_cache - {i}/{len(all_pairs)-1} ({path_img0}, {path_img1}, {label_pair})', end='\r')
+            img0 = imread(path_img0)[:, :, :3]
+            img1 = imread(path_img1)[:, :, :3]
+
+            img0_preproc = self.process_image(img0.astype(np.float32), app=None)
+            img1_preproc = self.process_image(img1.astype(np.float32), app=None)
+
+            cache[i] = (img0_preproc, img1_preproc, torch.tensor(int(label_pair)))
+
+        # torch.save(cache, cache_file_name)         # Bernardo
+        return self.cache_to_cuda(cache)
+
+
+
+    # Bernardo
+    def get_all_distances(self, cache, flip_img=False):
         cache_keys = list(cache.keys())
         cos_sims = torch.zeros(len(cache_keys))
 
         for i, key in enumerate(cache_keys):
             img0, img1, pair_label = cache[key]
             with torch.no_grad():
-                codedict = self.nfc.encode(images=None, arcface_imgs=torch.cat([img0, img1], dim=0))
-                opdict = self.nfc.decode(codedict, 0)
 
-                face_embedd = opdict['face_embedd']
-                # face_embedd = opdict['logits_pred']
+                if flip_img:
+                    img0_flip = torch.flip(torch.permute(torch.clone(img0), (0, 2, 3, 1)), [2])
+                    img1_flip = torch.flip(torch.permute(torch.clone(img1), (0, 2, 3, 1)), [2])
+                    # print('img0.size():', img0.size(), '    img0.min():', img0.min(), '    img0.max():', img0.max())
+                    # print('img0_flip.size():', img0_flip.size())
+                    # print('Saving images...')
+                    # cv2.imwrite(f'./{i}_img0_flip.png', cv2.cvtColor((img0_flip[0].cpu().numpy() - -1) * 127.5, cv2.COLOR_BGR2RGB))
+                    # cv2.imwrite(f'./{i}_img1_flip.png', cv2.cvtColor((img1_flip[0].cpu().numpy() - -1) * 127.5, cv2.COLOR_BGR2RGB))
 
-                cos_sims[i] = F.cosine_similarity(F.normalize(torch.unsqueeze(face_embedd[0], 0)), F.normalize(torch.unsqueeze(face_embedd[1], 0)))
+                    img0_flip = torch.permute(img0_flip, (0, 3, 1, 2))
+                    img1_flip = torch.permute(img1_flip, (0, 3, 1, 2))
+                    # print('img0_flip.size():', img0_flip.size(), '    img0_flip.min():', img0.min(), '    img0_flip.max():', img0.max())
+                    # print('img1_flip.size():', img1_flip.size(), '    img1_flip.min():', img0.min(), '    img1_flip.max():', img0.max())
+                    # sys.exit(0)
+
+                    codedict = self.nfc.encode(images=None, arcface_imgs=torch.cat([img0, img0_flip, img1, img1_flip], dim=0))
+                    opdict = self.nfc.decode(codedict, 0)
+                    face_embedd = opdict['face_embedd']
+                    face_embedd = F.normalize(face_embedd)
+
+                    # print('face_embedd.size():', face_embedd.size())
+                    face_embedd[0] += face_embedd[1]
+                    face_embedd[2] += face_embedd[3]
+                    embedd0, embedd1 = face_embedd[0], face_embedd[2]
+
+                else:
+                    codedict = self.nfc.encode(images=None, arcface_imgs=torch.cat([img0, img1], dim=0))
+                    opdict = self.nfc.decode(codedict, 0)
+                    face_embedd = opdict['face_embedd']
+                    embedd0, embedd1 = face_embedd[0], face_embedd[1]
+
+                cos_sims[i] = torch.sum( torch.square( F.normalize(torch.unsqueeze(embedd0, 0)) - F.normalize(torch.unsqueeze(embedd1, 0)) ) )
+
                 print('\x1b[2K', end='')
                 print(f'tester_multitask_FACEVERIFICATION - get_all_distances - {i}/{len(cache_keys)-1} - pair_label: {pair_label}, cos_sims[{i}]: {cos_sims[i]}', end='\r')
 
+        print(f'\ncos_sims.min():', cos_sims.min(), '   cos_sims.max():', cos_sims.max())
         return cos_sims
     
 
@@ -246,20 +307,22 @@ class TesterMultitaskFacerverification(object):
         best_tresh = 0
         best_acc = 0
         
-        start, end, step = 0, 1, 0.01
+        # start, end, step = 0, 1, 0.01
+        start, end, step = 0, 4, 0.01    # used in insightface code
+
         treshs = torch.arange(start, end+step, step)
         for i, tresh in enumerate(treshs):
             tresh = torch.round(tresh, decimals=3)
             tp, fp, tn, fn, acc = 0, 0, 0, 0, 0
-            for i, cos_sim in enumerate(cos_sims):
-                _, _, pair_label = cache[i]
+            for j, cos_sim in enumerate(cos_sims):
+                _, _, pair_label = cache[j]
                 if pair_label == 1:
-                    if cos_sim >= tresh:
+                    if cos_sim < tresh:
                         tp += 1
                     else:
                         fn += 1
                 else:
-                    if cos_sim < tresh:
+                    if cos_sim >= tresh:
                         tn += 1
                     else:
                         fp += 1
@@ -278,7 +341,18 @@ class TesterMultitaskFacerverification(object):
 
 
     # Bernardo
-    def evaluate_model(self, checkpoint='', dataset_name=''):
+    def save_similarities_to_file(self, path_file, cos_sims, cache):
+        pair_labels = np.zeros((len(list(cache.keys())),), dtype=int)
+        for i in range(len(list(cache.keys()))):
+            pair_labels[i] = cache[i][2].cpu().numpy()
+        data = {'cos-sims': cos_sims.numpy(),
+                'pair_labels': pair_labels}
+        np.save(path_file, data)
+        
+
+
+    # Bernardo
+    def evaluate_model(self, checkpoint='', dataset_name='', args=None):
         logger.info(f"[TESTER] {dataset_name} testing has begun!")
         if checkpoint.endswith('.tar') and os.path.isfile(checkpoint):
             self.load_checkpoint(checkpoint)
@@ -291,6 +365,8 @@ class TesterMultitaskFacerverification(object):
             cache = self.create_mlfw_cache()    # Bernardo
         elif dataset_name.upper() == 'LFW':
             cache = self.create_lfw_cache()     # Bernardo
+        elif dataset_name.upper() == 'TALFW':
+            cache = self.create_talfw_cache()     # Bernardo
         else:
             logger.error('[TESTER] Test dataset was not specified: ' + str(dataset_name))
             sys.exit(0)
@@ -298,6 +374,17 @@ class TesterMultitaskFacerverification(object):
         logger.info(f"Computing pair distances...")
         cos_sims = self.get_all_distances(cache)
 
+        path_cos_sims = '/'.join(args.cfg.split('/')[:-2]) + '/output/' + '.'.join(args.cfg.split('/')[-1].split('.')[:-1])
+        cos_sims_file = path_cos_sims + '/' + 'cos-sims_checkpoint=' + checkpoint.split('/')[-1] + '_dataset=' + dataset_name + '.npy'
+        # print('checkpoint:', checkpoint)
+        # print('path_cos_sims:', path_cos_sims)
+        # print('cos_sims_file:', cos_sims_file)
+        # sys.exit(0)
+        if not os.path.isdir(path_cos_sims):
+            os.makedirs(path_cos_sims)
+        logger.info(f"Saving cosine similarities to file: {cos_sims_file}")
+        self.save_similarities_to_file(cos_sims_file, cos_sims.cpu(), cache)
+        
         print()
         logger.info(f"Findind best treshold...")
         best_tresh, best_acc = self.find_best_treshold(cache, cos_sims)

@@ -36,15 +36,19 @@ if __name__ == '__main__':
     # from configs.config import parse_args
     from configs.config_multitask_facerecognition import parse_args
 
-    # Original ARCFACE (no MICA train, sanity check)
-    model = '19_mica_duo_pretrainedARCFACE=ms1mv3-r100_fr-feat=original-arcface_ORIGINAL-ARCFACE'
-    checkpoint = ''
+    # # Original ARCFACE (no MICA train, sanity check)
+    # model = '19_mica_duo_pretrainedARCFACE=ms1mv3-r100_fr-feat=original-arcface_ORIGINAL-ARCFACE'
+    # checkpoint = ''
 
     # ARCFACE (2D only)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_300000.tar'
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_350000.tar'
+    # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
+    # checkpoint = 'model_190000.tar'    # LFW: 95.3%,  MLFW: 68.5%,  TALFW: 75.2%
+    model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
+    checkpoint = 'model_10000.tar'       # LFW: 98.5%,  MLFW: 81.9%,  TALFW: 70.0%
 
     # # Multi-task (ArcFace + Reconstruction)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-7_wd=2e-5_lamb1=1.0_lamb2=1.0'
@@ -57,12 +61,32 @@ if __name__ == '__main__':
     # checkpoint = 'model_300000.tar'
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_250000.tar'
+    # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
+    # checkpoint = 'model_180000.tar'   # LFW: 92.2%,  MLFW: 63.9%,  TALFW: 73.5%
+    # checkpoint = 'model_210000.tar'   # LFW: 91.7%,  MLFW: 62.7%,  TALFW: 74.4%
+    # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
+    # checkpoint = 'model_10000.tar'    # LFW: 92.5%,  MLFW: 72.4%,  TALFW: 64.3%
+    # checkpoint = 'model_20000.tar'      # LFW: 91.9%,  MLFW: 72.3%,  TALFW: 63.9%
 
     # Multi-task (3DMM + Reconstruction)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-7_wd=2e-5_lamb1=1.0_lamb2=1.0'
     # checkpoint = 'model_200000.tar'
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-7_wd=2e-5_lamb1=0.1_lamb2=1.0'
     # checkpoint = 'model_250000.tar'
+    # model = '20_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-7_wd=1e-5_opt=AdamW_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    # checkpoint = 'model_290000.tar'
+    # model = '20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    # checkpoint = 'model_80000.tar'
+    # model = '20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=5e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    # checkpoint = 'model_150000.tar'
+    # model = '20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.05_lamb2=0.95'
+    # checkpoint = 'model_10000.tar'
+
+    # Separated Multi-task (3DMM + Reconstruction)
+    # model = '21_TRAIN-TASK-SEPARATED_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    # checkpoint = 'model_40000.tar'
+    # model = '21_TRAIN-TASK-SEPARATED_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.05_lamb2=0.95'
+    # checkpoint = 'model_10000.tar'
 
     # FUSION 2D + 3D
     # model = '17_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT-FUSION_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface-3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
@@ -76,7 +100,6 @@ if __name__ == '__main__':
     # model = '17_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT-FUSION_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface-3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-8_wd=2e-5_lamb1=1.0_lamb2=1.0'
     # checkpoint = 'model_20000.tar'
 
-
     # BERNARDO
     if len(sys.argv) < 2:
         sys.argv.append('--cfg')
@@ -86,8 +109,9 @@ if __name__ == '__main__':
         sys.argv.append(models_folder + '/' + model + '/' + checkpoint)
 
         sys.argv.append('--test_dataset')
-        sys.argv.append('LFW')
+        # sys.argv.append('LFW')
         # sys.argv.append('MLFW')
+        sys.argv.append('TALFW')
 
 
     cfg, args = parse_args()
