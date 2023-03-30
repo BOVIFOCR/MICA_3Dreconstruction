@@ -143,6 +143,31 @@ def train_multitask_facerecognition1(rank, world_size, cfg):
     dist.destroy_process_group()
 
 
+# Bernardo
+def plot_multitask_face_embeddings1(rank, world_size, cfg, args):
+    from micalib.tester_multitask_facerecognition1 import TesterMultitaskFacerecognition1      # Bernardo
+    from micalib.tester_multitask_FACEVERIFICATION import TesterMultitaskFacerverification     # Bernardo
+
+    port = np.random.randint(low=0, high=2000)
+    setup(rank, world_size, 12310 + port)
+
+    deterministic(rank)
+
+    cfg.model.testing = True
+    mica = util.find_model_using_name(model_dir='micalib.models', model_name=cfg.model.name)(cfg, rank)
+
+    # tester = Tester(nfc_model=mica, config=cfg, device=rank)                          # original
+    # tester = TesterMultitaskFacerecognition1(nfc_model=mica, config=cfg, device=rank) # Bernardo
+    tester = TesterMultitaskFacerverification(nfc_model=mica, config=cfg, device=rank)  # Bernardo
+
+    tester.render_mesh = True
+
+    # tester.evaluate_model(args.checkpoint, args.test_dataset.upper(), args)
+    tester.plot_face_embeddings(args.checkpoint, args.test_dataset.upper(), args)
+    
+    logger.info('[TESTER] Plotter has ended!')
+
+    dist.destroy_process_group()
 
 
 def test(rank, world_size, cfg, args):

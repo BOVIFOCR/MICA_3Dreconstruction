@@ -36,12 +36,12 @@ output_dir_annotation: ''
 train:
   lr: 1e-5
   arcface_lr: 1e-5
-  face_recog_lr: 1e-6
-  lambda1: 1.0    # reconstruction
-  lambda2: 1.0    # recognition
+  face_recog_lr: 1e-4
+  lambda1: 0.05    # reconstruction
+  lambda2: 0.95    # recognition
   weight_decay: 2e-5
   use_mask: True
-  reset_optimizer: False
+  reset_optimizer: True
   max_steps: 160000
   log_steps: 50
   val_steps: 300
@@ -53,6 +53,12 @@ train:
   early_stop: True
   early_stop_tolerance: 0.05   # std/avg (Bernardo)
   early_stop_patience: 5       # Bernardo
+
+  train_reconstruction: True    # Bernardo
+  train_recognition: True       # Bernardo
+
+  loss_mode: 'sum_all'        # Bernardo
+  # loss_mode: 'separate'         # Bernardo
 
 model:
   use_pretrained: False # original

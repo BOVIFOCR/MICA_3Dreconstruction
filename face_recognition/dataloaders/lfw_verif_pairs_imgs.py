@@ -10,6 +10,28 @@ from pathlib import Path
 class LFW_Verif_Pairs_Images:
 
 
+    def load_class_samples_from_bin_folder(self, dataset_path='lfw_cropped_aligned', file_ext='.png'):
+        img_paths = sorted(glob(dataset_path + '/*/*' + file_ext))
+        img_labels_names = [img_path.split('/')[-2] for img_path in img_paths]
+        img_labels_nums = []
+        assert len(img_paths) == len(img_labels_names)
+        
+        label_num = 0
+        img_labels_nums.append(label_num)
+        label_name = img_labels_names[0]
+        for i in range(1, len(img_labels_names)):
+            if img_labels_names[i] != label_name:
+                label_num += 1
+            img_labels_nums.append(label_num)
+            label_name = img_labels_names[i]
+
+        # # print('load_class_samples_from_bin_folder - img_paths:', img_paths)
+        # for i in range(len(img_paths)):
+        #     img_path, img_label_name, img_label_num = img_paths[i], img_labels_names[i], img_labels_nums[i]
+        #     print('img_path:', img_path, '  img_label_name:', img_label_name, '  img_label_num:', img_label_num)
+        return img_paths, img_labels_names, img_labels_nums
+
+
     def load_pairs_samples_protocol_from_bin_folder(self, dataset_path='lfw_from_bin', num_folds=10, num_type_pair_per_fold=300, file_ext='.png'):
         pos_pair_label = '1'
         neg_pair_label = '0'

@@ -23,7 +23,8 @@ import torch.backends.cudnn as cudnn
 import torch.multiprocessing as mp
 
 # from jobs import test                            # original
-from jobs import test_multitask_facerecognition1   # Bernardo
+# from jobs import test_multitask_facerecognition1   # Bernardo
+from jobs import plot_multitask_face_embeddings1   # Bernardo
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_350000.tar'
     # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
-    # checkpoint = 'model_190000.tar'      # LFW: 95.3%,  MLFW: 68.5%,  TALFW: 75.2%
+    # checkpoint = 'model_190000.tar'    # LFW: 95.3%,  MLFW: 68.5%,  TALFW: 75.2%
     # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_10000.tar'       # LFW: 98.5%,  MLFW: 81.9%,  TALFW: 70.0%
 
@@ -61,12 +62,12 @@ if __name__ == '__main__':
     # checkpoint = 'model_300000.tar'
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_250000.tar'
-    # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
+    model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_180000.tar'   # LFW: 92.2%,  MLFW: 63.9%,  TALFW: 73.5%
-    # checkpoint = 'model_210000.tar'   # LFW: 91.7%,  MLFW: 62.7%,  TALFW: 74.4%
+    checkpoint = 'model_210000.tar'   # LFW: 91.7%,  MLFW: 62.7%,  TALFW: 74.4%
     # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_10000.tar'    # LFW: 92.5%,  MLFW: 72.4%,  TALFW: 64.3%
-    # checkpoint = 'model_20000.tar'    # LFW: 91.9%,  MLFW: 72.3%,  TALFW: 63.9%
+    # checkpoint = 'model_20000.tar'      # LFW: 91.9%,  MLFW: 72.3%,  TALFW: 63.9%
 
     # Multi-task (3DMM + Reconstruction)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-7_wd=2e-5_lamb1=1.0_lamb2=1.0'
@@ -81,11 +82,6 @@ if __name__ == '__main__':
     # checkpoint = 'model_150000.tar'
     # model = '20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.05_lamb2=0.95'
     # checkpoint = 'model_10000.tar'
-    model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.02_lamb2=0.98'
-    # checkpoint = 'model_30000.tar'    # LFW: 90.4%,  MLFW: 70.7%,   TALFW: 64.5%
-    # checkpoint = 'model_40000.tar'    # LFW: 91.3%,  MLFW: 71.0%,   TALFW: 65.4%
-    # checkpoint = 'model_100000.tar'   # LFW: 90.7%,  MLFW: 66.3%,   TALFW: 70.2%
-    checkpoint = 'model_200000.tar'     # LFW: ????%,  MLFW: ????%,   TALFW: ????%
 
     # Separated Multi-task (3DMM + Reconstruction)
     # model = '21_TRAIN-TASK-SEPARATED_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
@@ -106,18 +102,16 @@ if __name__ == '__main__':
     # checkpoint = 'model_20000.tar'
 
     # BERNARDO
-    if not '--cfg' in sys.argv:
+    if len(sys.argv) < 2:
         sys.argv.append('--cfg')
         sys.argv.append(configs_folder + '/' + model + '.yml')
-    
-    if not '--checkpoint' in sys.argv:
+
         sys.argv.append('--checkpoint')
         sys.argv.append(models_folder + '/' + model + '/' + checkpoint)
 
-    if not '--test_dataset' in sys.argv:
         sys.argv.append('--test_dataset')
-        sys.argv.append('LFW')
-        # sys.argv.append('MLFW')
+        # sys.argv.append('LFW')
+        sys.argv.append('MLFW')
         # sys.argv.append('TALFW')
 
 
@@ -139,6 +133,6 @@ if __name__ == '__main__':
         num_gpus = 1    # cpu
 
     # mp.spawn(test, args=(num_gpus, cfg, args), nprocs=num_gpus, join=True)                            # original
-    mp.spawn(test_multitask_facerecognition1, args=(num_gpus, cfg, args), nprocs=num_gpus, join=True)   # Bernardo
+    mp.spawn(plot_multitask_face_embeddings1, args=(num_gpus, cfg, args), nprocs=num_gpus, join=True)   # Bernardo
 
     exit(0)

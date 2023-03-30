@@ -115,6 +115,12 @@ def train_model(model=None, trainloader=None, valloader=None):
                 loss.backward()
                 optimizer.step()
 
+                # PRINT GRADIENT
+                print('model.layers:', model.layers)
+                # print('model.layers[1].weight:', model.layers[1].weight)
+                print('model.layers[1].weight.grad:', model.layers[1].weight.grad)
+                print('torch.linalg.matrix_norm(model.layers[1].weight.grad):', torch.linalg.matrix_norm(model.layers[1].weight.grad))
+
                 train_loss += loss.item()
                 if i % 100 == 99:
                     print('Train loss (mini-batch) %5d: %.3f' % (i + 1, train_loss / 100))

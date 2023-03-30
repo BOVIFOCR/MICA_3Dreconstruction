@@ -192,22 +192,27 @@ class MICAMultitaskFacerecognition1(BaseModel):
             # face_embed -= face_embed.min(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
             # face_embed /= face_embed.max(1, keepdim=True)[0]    # inplace operation (produces error when training Multi-task ArcFace)
             face_embed = face_embed - face_embed.min(1, keepdim=True)[0]
-            face_embed = face_embed / face_embed.max(1, keepdim=True)[0]
+            face_embed = face_embed / face_embed.max(1, keepdim=True)[0]     
 
         elif self.cfg.model.face_embed == '3dmm':
             face_embed = pred_shape_code          # 3DMM embedding (300)
             if self.cfg.dataset.norm == '0,1_min-max':
-                face_embed -= face_embed.min(1, keepdim=True)[0]
-                face_embed /= face_embed.max(1, keepdim=True)[0]
+                # face_embed -= face_embed.min(1, keepdim=True)[0]   # inplace operation 
+                # face_embed /= face_embed.max(1, keepdim=True)[0]   # inplace operation 
+                face_embed = face_embed - face_embed.min(1, keepdim=True)[0]
+                face_embed = face_embed / face_embed.max(1, keepdim=True)[0]
             elif self.cfg.dataset.norm == '-1,1_mean-0':
-                face_embed /= 4.0
+                # face_embed /= 4.0    # inplace operation 
+                face_embed = face_embed / 4.0
 
         elif self.cfg.model.face_embed == 'arcface-3dmm':
             norm_identity_code = identity_code - identity_code.min(1, keepdim=True)[0]
-            norm_identity_code /= norm_identity_code.max(1, keepdim=True)[0]
+            # norm_identity_code /= norm_identity_code.max(1, keepdim=True)[0]
+            norm_identity_code = norm_identity_code / norm_identity_code.max(1, keepdim=True)[0]
 
             norm_pred_shape_code = pred_shape_code - pred_shape_code.min(1, keepdim=True)[0]
-            norm_pred_shape_code /= norm_pred_shape_code.max(1, keepdim=True)[0]
+            # norm_pred_shape_code /= norm_pred_shape_code.max(1, keepdim=True)[0]
+            norm_pred_shape_code = norm_pred_shape_code / norm_pred_shape_code.max(1, keepdim=True)[0]
 
             face_embed = torch.cat((norm_identity_code, norm_pred_shape_code), dim=1)
 

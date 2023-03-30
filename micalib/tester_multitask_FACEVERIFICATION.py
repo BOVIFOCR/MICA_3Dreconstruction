@@ -225,6 +225,33 @@ class TesterMultitaskFacerverification(object):
 
         # torch.save(cache, cache_file_name)         # Bernardo
         return self.cache_to_cuda(cache)
+    
+
+    # Bernardo
+    def create_lfw_cache_classes(self, output_folder='lfw_cropped_aligned'):
+        cache_file_name = 'test_lfw_cache.pt'      # Bernardo
+        cache = {}
+
+        file_ext = '.png'
+        # all_pairs, pos_pair_label, neg_pair_label = LFW_Verif_Pairs_Images().load_pairs_samples_protocol_from_bin_folder(LFW_PICTURES, num_folds=10, num_type_pair_per_fold=300, file_ext=file_ext)
+        img_paths, img_labels_names, img_labels_nums = LFW_Verif_Pairs_Images().load_class_samples_from_bin_folder('/datasets1/bjgbiesseck/lfw_cropped_aligned', file_ext=file_ext)
+
+        arcface = []
+        # for i in range(len(img_paths)):
+        for i in range(len(img_paths[:100])):
+            img_path, img_label_name, img_label_num = img_paths[i], img_labels_names[i], img_labels_nums[i]
+            print('\x1b[2K', end='')
+            print(f'tester_multitask_FACEVERIFICATION - create_lfw_cache_classes - {i}/{len(img_paths)-1} ({img_path}, {img_label_name}, {img_label_num})', end='\r')
+            
+            img0 = imread(img_path)[:, :, :3]
+            img0_preproc = self.process_image(img0.astype(np.float32), app=None)
+            
+            # cache[i] = (img0_preproc, torch.tensor(int(img_label_num)))
+            cache[i] = (img0_preproc.to(self.device), torch.tensor(int(img_label_num)).to(self.device))
+
+        # torch.save(cache, cache_file_name)         # Bernardo
+        # return self.cache_to_cuda(cache)
+        return cache
 
 
     # Bernardo
@@ -250,6 +277,73 @@ class TesterMultitaskFacerverification(object):
 
         # torch.save(cache, cache_file_name)         # Bernardo
         return self.cache_to_cuda(cache)
+
+
+    # Bernardo
+    def get_face_embeddings(self, cache, flip_img=False):
+        cache_keys = list(cache.keys())
+
+        # print('cache[0]:', cache[0])
+        # print('cache[0][0].size():', cache[0][0].size())
+        codedict = self.nfc.encode(images=None, arcface_imgs=cache[0][0])
+        opdict = self.nfc.decode(codedict, 0)
+        face_embedd = opdict['pred_shape_code']
+        # print('face_embedd:', face_embedd)
+        # print('face_embedd.size():', face_embedd.size())
+        
+        face_embedds = torch.zeros(len(cache_keys), face_embedd.size()[1])
+        face_labels = torch.zeros(len(cache_keys))
+        # print('face_embedds.size():', face_embedds.size())
+        # sys.exit(0)
+
+        for i, key in enumerate(cache_keys):
+            img0, label_num = cache[key]
+            with torch.no_grad():
+
+                if flip_img:
+                    img0_flip = torch.flip(torch.permute(torch.clone(img0), (0, 2, 3, 1)), [2])
+                    # img1_flip = torch.flip(torch.permute(torch.clone(img1), (0, 2, 3, 1)), [2])
+                    # print('img0.size():', img0.size(), '    img0.min():', img0.min(), '    img0.max():', img0.max())
+                    # print('img0_flip.size():', img0_flip.size())
+                    # print('Saving images...')
+                    # cv2.imwrite(f'./{i}_img0_flip.png', cv2.cvtColor((img0_flip[0].cpu().numpy() - -1) * 127.5, cv2.COLOR_BGR2RGB))
+                    # cv2.imwrite(f'./{i}_img1_flip.png', cv2.cvtColor((img1_flip[0].cpu().numpy() - -1) * 127.5, cv2.COLOR_BGR2RGB))
+
+                    img0_flip = torch.permute(img0_flip, (0, 3, 1, 2))
+                    # img1_flip = torch.permute(img1_flip, (0, 3, 1, 2))
+                    # print('img0_flip.size():', img0_flip.size(), '    img0_flip.min():', img0.min(), '    img0_flip.max():', img0.max())
+                    # print('img1_flip.size():', img1_flip.size(), '    img1_flip.min():', img0.min(), '    img1_flip.max():', img0.max())
+                    # sys.exit(0)
+
+                    # codedict = self.nfc.encode(images=None, arcface_imgs=torch.cat([img0, img0_flip, img1, img1_flip], dim=0))
+                    codedict = self.nfc.encode(images=None, arcface_imgs=torch.cat([img0, img0_flip], dim=0))
+                    opdict = self.nfc.decode(codedict, 0)
+                    face_embedd = opdict['pred_shape_code']
+                    face_embedd = F.normalize(face_embedd)
+
+                    # print('face_embedd.size():', face_embedd.size())
+                    face_embedd[0] += face_embedd[1]
+                    # face_embedd[2] += face_embedd[3]
+                    # embedd0, embedd1 = face_embedd[0], face_embedd[2]
+                    embedd0 = face_embedd[0]
+
+                else:
+                    # codedict = self.nfc.encode(images=None, arcface_imgs=torch.cat([img0, img1], dim=0))
+                    codedict = self.nfc.encode(images=None, arcface_imgs=img0)
+                    opdict = self.nfc.decode(codedict, 0)
+                    face_embedd = opdict['pred_shape_code']
+                    # embedd0, embedd1 = face_embedd[0], face_embedd[1]
+                    embedd0 = face_embedd[0]
+
+                # cos_sims[i] = torch.sum( torch.square( F.normalize(torch.unsqueeze(embedd0, 0)) - F.normalize(torch.unsqueeze(embedd1, 0)) ) )
+                face_embedds[i] = embedd0
+                face_labels[i] = label_num
+
+                print('\x1b[2K', end='')
+                print(f'tester_multitask_FACEVERIFICATION - get_face_embeddings - {i}/{len(cache_keys)-1} - label_num: {label_num}', end='\r')
+
+        print()
+        return face_embedds, face_labels
 
 
 
@@ -389,3 +483,90 @@ class TesterMultitaskFacerverification(object):
         logger.info(f"Findind best treshold...")
         best_tresh, best_acc = self.find_best_treshold(cache, cos_sims)
         print(f'\nbest_tresh: {best_tresh},   best_acc: {best_acc}')
+
+
+    # Bernardo
+    def plot_reduced_face_embeddings(self, X, Y, path_file, save=True):
+        import matplotlib.pyplot as plt
+
+        # scale_factor =   0.01
+        # scale_factor = 0.015
+        # fig, ax = plt.subplots(1, 1, figsize=(num_classes*scale_factor, num_classes*scale_factor))
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        im = ax.scatter(X[:,0], X[:,1], c=Y, cmap='Set3', alpha=1.0)
+
+        ax.set_title(f'Reduced face embeddings - t-SNE')
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('Actual')
+        # ax.set_xlim(-1, num_classes)
+        # ax.set_ylim(-1, num_classes)
+        fig.tight_layout()
+
+        fig.savefig(path_file)   # save the figure to file
+        plt.close(fig)           # close the figure window
+        
+
+
+
+    # Bernardo
+    def plot_face_embeddings(self, checkpoint='', dataset_name='', args=None):
+        # from tsnecuda import TSNE
+        from sklearn.manifold import TSNE
+
+        path_embeddings = '/'.join(args.cfg.split('/')[:-2]) + '/output/' + '.'.join(args.cfg.split('/')[-1].split('.')[:-1])
+        embeddings_file = path_embeddings + '/' + 't-SNE_2D_checkpoint=' + checkpoint.split('/')[-1] + '_dataset=' + dataset_name + '.npy'
+        
+        if not os.path.exists(embeddings_file):
+            logger.info(f"[TESTER] {dataset_name} plotting has begun!")
+            if checkpoint.endswith('.tar') and os.path.isfile(checkpoint):
+                self.load_checkpoint(checkpoint)
+                name = self.get_name(checkpoint, id)
+            self.nfc.eval()
+
+            logger.info(f"[TESTER] Creating {dataset_name} cache...")
+            # cache = self.create_now_cache()         # original
+            
+            if dataset_name.upper() == 'LFW':
+                cache = self.create_lfw_cache_classes()       # Bernardo
+            # elif dataset_name.upper() == 'MLFW':
+            #     cache = self.create_mlfw_cache()      # Bernardo
+            # elif dataset_name.upper() == 'TALFW':
+            #     cache = self.create_talfw_cache()     # Bernardo
+            else:
+                logger.error('[TESTER] Test dataset was not specified: ' + str(dataset_name))
+                sys.exit(0)
+
+            logger.info(f"Computing face embeddings...")
+            face_embedds, face_labels = self.get_face_embeddings(cache, flip_img=False)
+            face_embedds = face_embedds.numpy().astype(float)
+            face_labels = face_labels.numpy()
+            # print('face_embedds:', face_embedds)
+            # print('face_embedds.shape:', face_embedds.shape)
+            # print('face_embedds.dtype:', face_embedds.dtype)
+            # print('face_labels:', face_labels)
+            # print('face_labels:', face_labels.shape)
+            # cos_sims = self.get_all_distances(cache)
+
+            logger.info(f"t-SNE: reducing dimensionality...")
+            X_embedded = TSNE().fit_transform(face_embedds)
+            # X_embedded = TSNE().fit_transform(np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 1]]))
+            print('X_embedded:', X_embedded.shape)
+
+            if not os.path.isdir(path_embeddings):
+                os.makedirs(path_embeddings)
+            logger.info(f"Saving face embeddings to file: {embeddings_file}")
+            data = {'face_embedds': face_embedds, 'face_embedds_reduced': X_embedded, 'face_labels': face_labels}
+            np.save(embeddings_file, data)
+        
+        else:
+            # data = {'face_embedds': face_embedds, 'face_embedds_reduced': X_embedded, 'face_labels': face_labels}
+            data = np.load(embeddings_file, allow_pickle=True).item()
+            face_embedds = data['face_embedds']
+            face_labels = data['face_labels']
+            X_embedded = data['face_embedds_reduced']
+        
+        plot_embeddings_file = path_embeddings + '/' + 't-SNE_2D_checkpoint=' + checkpoint.split('/')[-1] + '_dataset=' + dataset_name + '.png'
+        logger.info(f"Plotting reduced face embeddings: {plot_embeddings_file}")
+        self.plot_reduced_face_embeddings(X_embedded, face_labels, plot_embeddings_file, save=True)
+
+
