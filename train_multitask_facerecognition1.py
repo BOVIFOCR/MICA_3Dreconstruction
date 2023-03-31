@@ -112,16 +112,16 @@ if __name__ == '__main__':
 
             # TESTING RESET OPTIMIZER, OPTIMIZER=AdamW
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-7_wd=1e-5_opt=AdamW_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
-            
+
             # TESTING RESET OPTIMIZER, OPTIMIZER=AdamW, WEIGHT DECAY WITH LR=1e-6
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-6_wd=1e-6_opt=AdamW_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-6_wd=1e-7_opt=AdamW_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-6_wd=1e-5_opt=AdamW_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-6_wd=1e-4_opt=AdamW_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
-            
+
             # TESTING RESET OPTIMIZER, OPTIMIZER=AdamW, COSINE ANNEALING, WEIGHT DECAY WITH LR=1e-6
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-6_wd=1e-6_opt=AdamW_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
-            
+
             # TESTING RESET OPTIMIZER, OPTIMIZER=SGD, COSINE ANNEALING, WEIGHT DECAY WITH LR=1e-6
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-6_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
@@ -150,10 +150,18 @@ if __name__ == '__main__':
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/24_PLOT-GRAD-ANGLES_SEPARATE-LOSSES_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-4_wd=2e-5_lamb1=1.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-4_wd=2e-5_lamb1=0.02_lamb2=0.98.yml')
 
-            # TEST USING lamb1=0.02 and lamb2=0.98
-            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99.yml')
+            # TEST USING (lamb1=0.01, lamb2=0.91) and (lamb1=0.02, lamb2=0.98) - 3DMM
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.02_lamb2=0.98.yml')
 
+            # TEST USING (lamb1=0.01, lamb2=0.91) and (lamb1=0.02, lamb2=0.98) - ARCFACE
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.02_lamb2=0.98.yml')
+
+            # AFFINITY SCORE
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/25_AFFINITY-SCORE_ONLY-RECONST-TASK_train=FRGC_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/25_AFFINITY-SCORE_ONLY-RECONST-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
+            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/25_AFFINITY-SCORE_ONLY-RECOGNI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
 
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/99_ONLY-TEST_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=1.0_lamb2=1.0.yml')
 

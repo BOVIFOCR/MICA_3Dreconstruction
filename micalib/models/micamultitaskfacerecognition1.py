@@ -296,10 +296,11 @@ class MICAMultitaskFacerecognition1(BaseModel):
     def compute_losses(self, configs, input, encoder_output, decoder_output):
         losses = {}
 
-        if configs.train.train_reconstruction:
-            pred_verts = decoder_output['pred_canonical_shape_vertices']         # original
-        else:
-            pred_verts = decoder_output['pred_canonical_shape_vertices'].detach()  # Bernardo
+        # if configs.train.train_reconstruction:
+        #     pred_verts = decoder_output['pred_canonical_shape_vertices']         # original
+        # else:
+        #     pred_verts = decoder_output['pred_canonical_shape_vertices'].detach()  # Bernardo
+        pred_verts = decoder_output['pred_canonical_shape_vertices']
         gt_verts = decoder_output['flame_verts_shape'].detach()
 
         pred_verts_shape_canonical_diff = (pred_verts - gt_verts).abs()
@@ -323,10 +324,11 @@ class MICAMultitaskFacerecognition1(BaseModel):
         # losses['class_loss'] = self.cross_entropy_loss2(logits_pred, y_true)
         # losses['class_loss'] = configs.train.lambda2 * self.cross_entropy_loss2(logits_pred, y_true)
 
-        if configs.train.train_recognition:
-            losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
-        else:
-            losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred.detach(), y_true.detach())
+        # if configs.train.train_recognition:
+        #     losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
+        # else:
+        #     losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred.detach(), y_true.detach())
+        losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
 
         metrics = {}
         metrics['acc'] = self.compute_accuracy(y_pred, y_true)

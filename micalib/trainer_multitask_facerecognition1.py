@@ -106,7 +106,6 @@ class TrainerMultitaskFacerecognition1(object):
         #     amsgrad=False)
         # self.scheduler = torch.optim.lr_scheduler.StepLR(self.opt, step_size=1, gamma=0.1, verbose=True)   # original
 
-
         # Bernardo
         self.opt = torch.optim.SGD(
             params=self.nfc.parameters_to_optimize(),
@@ -305,6 +304,17 @@ class TrainerMultitaskFacerecognition1(object):
                    angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias
 
 
+    # Bernardo
+    def compute_save_affinity_score(self, losses_history, global_step):
+        keys = list(losses_history.keys())
+        if len(losses_history[keys[0]]) > 10:
+            for k, v_list in losses_history.items():
+                # aff_score = 1 - (v_list[-1] / v_list[-2])
+                aff_score = 1 - (v_list[-1] / v_list[-10])
+                self.writer.add_scalar('train_affinity_score/' + k, aff_score, global_step=self.global_step)
+                # logger.info(f'  train_affinity_score/{k}: {aff_score:.4f}')
+                print(f'  train_affinity_score/{k}: {aff_score:.4f}')
+
 
     def fit(self):
         self.prepare_data()
@@ -317,6 +327,9 @@ class TrainerMultitaskFacerecognition1(object):
 
         # For early stopping (Bernardo)
         all_val_average_loss_step, all_val_smoothed_loss_step, all_val_avg_acc_fr_step = [], [], []
+
+        # Bernardo (affinity score)
+        self.train_losses_history = {'pred_verts_shape_canonical_diff': [], 'class_loss': [], 'all_loss': []}
 
         # for epoch in range(start_epoch, max_epochs):   # original
         while not self.early_stop:                       # Bernardo
@@ -353,8 +366,12 @@ class TrainerMultitaskFacerecognition1(object):
                     # all_loss.backward()
                     all_loss.backward(retain_graph=True)   # FOR GRADIENT TESTS
                 elif self.cfg.train.loss_mode == 'separate':
-                    for key in losses.keys():
-                        losses[key].backward(retain_graph=True)     # Bernardo (experimenting train each loss separate)
+                    if self.cfg.train.train_reconstruction:
+                        losses['pred_verts_shape_canonical_diff'].backward(retain_graph=True)
+                    if self.cfg.train.train_recognition:
+                        losses['class_loss'].backward(retain_graph=True)
+                    # for key in losses.keys():
+                    #     losses[key].backward(retain_graph=True)     # Bernardo (experimenting train each loss separate)
 
                 # PRINT GRADIENT
                 angle_features_weight, norm_grad_class_loss_wrt_features_weight, norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, \
@@ -376,6 +393,7 @@ class TrainerMultitaskFacerecognition1(object):
                         loss_info = loss_info + f'  {k}: {v:.4f}\n'
                         if self.cfg.train.write_summary:
                             self.writer.add_scalar('train_loss/' + k, v, global_step=self.global_step)
+                            self.train_losses_history[k].append(float(v.detach().cpu().numpy()))
 
                     # Bernardo
                     train_acc = opdict['metrics']['acc']
@@ -392,6 +410,7 @@ class TrainerMultitaskFacerecognition1(object):
                     self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.bias:', angle_features_bias, global_step=self.global_step)
                     self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.bias:', norm_grad_class_loss_wrt_features_bias, global_step=self.global_step)
                     self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.bias:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias, global_step=self.global_step)
+
 
                 if visualizeTraining and self.device == 0:
                     visdict = {
@@ -440,6 +459,13 @@ class TrainerMultitaskFacerecognition1(object):
                     all_val_average_loss_step.append(val_average_loss_step)
                     all_val_smoothed_loss_step.append(val_smoothed_loss_step)
                     all_val_avg_acc_fr_step.append(val_avg_acc_fr_step)
+
+                    # Bernardo (affinity score)
+                    # Efficiently Identifying Task Groupings for Multi-Task Learning
+                    # https://proceedings.neurips.cc/paper_files/paper/2021/file/e77910ebb93b511588557806310f78f1-Paper.pdf
+                    # for k in losses.keys():
+                    #     logger.info(f'  train_losses_history[{k}]: {self.train_losses_history[k]}')
+                    self.compute_save_affinity_score(self.train_losses_history, self.global_step)
 
                     # # early stopping (Bernardo)
                     # std_val_average_loss_step = np.std(np.array(all_val_average_loss_step[-self.early_stop_patience:]))

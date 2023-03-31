@@ -186,8 +186,8 @@ if __name__ == '__main__':
     sys.argv.append('model.tar')
 
     sys.argv.append('--train_dataset_name')
-    # sys.argv.append('LFW')
-    sys.argv.append('MLFW')
+    sys.argv.append('LFW')
+    # sys.argv.append('MLFW')
     # sys.argv.append('MS1MV2_1000')
 
     sys.argv.append('--train_dataset_path')

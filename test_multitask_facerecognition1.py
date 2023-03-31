@@ -55,6 +55,10 @@ if __name__ == '__main__':
     # checkpoint = 'model_20000.tar'
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-8_wd=2e-5_lamb1=0.1_lamb2=1.0'
     # checkpoint = 'model_20000.tar'
+    # model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.02_lamb2=0.98'
+    # checkpoint = 'model_30000.tar'     # LFW: 98.8%,  MLFW: 81.9%,  TALFW: 71.2%
+    model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99'
+    checkpoint = 'model_40000.tar'     # LFW: 99.0%,  MLFW: 82.4%,  TALFW: 71.0%
 
     # # 3DMM (3D only)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
@@ -81,11 +85,14 @@ if __name__ == '__main__':
     # checkpoint = 'model_150000.tar'
     # model = '20_MULTITASK-ARCFACE_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.05_lamb2=0.95'
     # checkpoint = 'model_10000.tar'
-    model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.02_lamb2=0.98'
+    # model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.02_lamb2=0.98'
     # checkpoint = 'model_30000.tar'    # LFW: 90.4%,  MLFW: 70.7%,   TALFW: 64.5%
     # checkpoint = 'model_40000.tar'    # LFW: 91.3%,  MLFW: 71.0%,   TALFW: 65.4%
     # checkpoint = 'model_100000.tar'   # LFW: 90.7%,  MLFW: 66.3%,   TALFW: 70.2%
-    checkpoint = 'model_200000.tar'     # LFW: ????%,  MLFW: ????%,   TALFW: ????%
+    # checkpoint = 'model_200000.tar'   # LFW: 90.4%,  MLFW: 62.4%,   TALFW: 74.3%
+    # model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99'
+    # checkpoint = 'model_30000.tar'    # LFW: 89.5%,  MLFW: 70.3%,   TALFW: 63.7%
+    # checkpoint = 'model_100000.tar'    # LFW: 90.8%,  MLFW: 68.0%,   TALFW: 68.0%
 
     # Separated Multi-task (3DMM + Reconstruction)
     # model = '21_TRAIN-TASK-SEPARATED_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
