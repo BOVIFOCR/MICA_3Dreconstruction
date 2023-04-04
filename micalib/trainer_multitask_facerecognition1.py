@@ -309,8 +309,8 @@ class TrainerMultitaskFacerecognition1(object):
         keys = list(losses_history.keys())
         if len(losses_history[keys[0]]) > 10:
             for k, v_list in losses_history.items():
-                # aff_score = 1 - (v_list[-1] / v_list[-2])
-                aff_score = 1 - (v_list[-1] / v_list[-10])
+                # aff_score = 1 - (v_list[-1] / v_list[-2] + 1e-6)
+                aff_score = 1 - (v_list[-1] / v_list[-10] + 1e-6)
                 self.writer.add_scalar('train_affinity_score/' + k, aff_score, global_step=self.global_step)
                 # logger.info(f'  train_affinity_score/{k}: {aff_score:.4f}')
                 print(f'  train_affinity_score/{k}: {aff_score:.4f}')

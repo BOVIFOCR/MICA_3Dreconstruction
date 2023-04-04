@@ -120,7 +120,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
 
         # Bernardo
         # self.faceClassifier = FaceClassifier1_MLP(self.cfg.model.num_classes, model_cfg, self.device).to(self.device)
-        self.faceClassifier = ArcFace_MLP(num_classes=self.cfg.model.num_classes, margin=0.5, scale=32.0, cfg=self.cfg, device=self.device).to(self.device)
+        self.faceClassifier = ArcFace_MLP(num_classes=self.cfg.model.num_classes, margin=self.cfg.train.arcface_margin1, scale=self.cfg.train.arcface_scale1, cfg=self.cfg, device=self.device).to(self.device)
 
     def load_model(self):
         model_path = os.path.join(self.cfg.output_dir, 'model.tar')
