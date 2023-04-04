@@ -120,7 +120,7 @@ class MICAMultitaskFacerecognition1(BaseModel):
 
         # Bernardo
         # self.faceClassifier = FaceClassifier1_MLP(self.cfg.model.num_classes, model_cfg, self.device).to(self.device)
-        self.faceClassifier = ArcFace_MLP(num_classes=self.cfg.model.num_classes, margin=0.5, scale=1.0, cfg=self.cfg, device=self.device).to(self.device)
+        self.faceClassifier = ArcFace_MLP(num_classes=self.cfg.model.num_classes, margin=0.5, scale=32.0, cfg=self.cfg, device=self.device).to(self.device)
 
     def load_model(self):
         model_path = os.path.join(self.cfg.output_dir, 'model.tar')
@@ -328,7 +328,13 @@ class MICAMultitaskFacerecognition1(BaseModel):
         #     losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
         # else:
         #     losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred.detach(), y_true.detach())
-        losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
+        # losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
+
+        # print('micamultitaskfacerecognition1.py - compute_losses - configs.train.loss:', configs.train.loss)
+        if configs.train.loss == 'arcface':
+            losses['class_loss'] = configs.train.lambda2 * self.arcface_loss1(logits_pred, y_true)
+        elif configs.train.loss == 'cross-entropy':
+            losses['class_loss'] = configs.train.lambda2 * self.cross_entropy_loss2(logits_pred, y_true)
 
         metrics = {}
         metrics['acc'] = self.compute_accuracy(y_pred, y_true)

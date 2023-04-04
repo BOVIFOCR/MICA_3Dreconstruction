@@ -114,6 +114,7 @@ cfg.train.early_stop_patience = 5      # Bernardo
 cfg.train.train_reconstruction = True  # Bernardo
 cfg.train.train_recognition = True     # Bernardo
 cfg.train.loss_mode = 'sum_all'        # Bernardo
+cfg.train.loss = 'arcface'             # Bernardo
 cfg.train.weight_decay = 0.0
 cfg.train.lr_update_step = 100000000
 cfg.train.log_dir = 'logs'
