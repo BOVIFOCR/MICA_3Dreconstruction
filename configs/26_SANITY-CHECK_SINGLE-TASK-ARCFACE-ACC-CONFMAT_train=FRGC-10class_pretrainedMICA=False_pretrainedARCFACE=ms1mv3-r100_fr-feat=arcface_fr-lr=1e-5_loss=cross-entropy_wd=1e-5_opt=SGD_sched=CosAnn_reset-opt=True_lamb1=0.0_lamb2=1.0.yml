@@ -1,0 +1,77 @@
+# Mica config 
+
+pretrained_model_path: '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/data/pretrained/mica.tar'
+
+dataset:
+  # root: '/home/bjgbiesseck/datasets/'
+  root: '/datasets1/bjgbiesseck/MICA'
+
+  # training_data: [ 'LYHM', 'D3DFACS', 'BU3DFE', 'FRGC', 'Stirling', 'FaceWarehouse', 'BP4D' ]    # original
+  # training_data: [ 'FRGC' ]                          # BERNARDO
+  # training_data: [ 'Stirling' ]                          # BERNARDO
+  # training_data: [ 'FRGC', 'Stirling', 'LYHM', 'FLORENCE' ]      # BERNARDO
+  # training_data: [ 'FRGC', 'LYHM', 'Stirling', 'FACEWAREHOUSE' ]   # BERNARDO
+  # training_data: [ 'FRGC', 'LYHM', 'Stirling', 'FACEWAREHOUSE', 'FLORENCE' ]   # BERNARDO
+  # training_data: [ 'FLORENCE' ]   # BERNARDO
+  training_data: [ 'FRGC_10classes' ]                          # BERNARDO
+
+  # eval_data: [ 'FRGC' ]          # original
+  # eval_data: [ 'FACEWAREHOUSE' ]   # Bernardo
+  # eval_data: [ 'Stirling' ]        # Bernardo
+  # eval_data: [ 'FRGC', 'LYHM', 'Stirling', 'FACEWAREHOUSE', 'FLORENCE' ]   # BERNARDO
+  # eval_data: [ 'FLORENCE' ]   # BERNARDO
+  eval_data: [ 'FRGC_10classes' ]          # original
+
+  train_prop: 0.8
+  eval_prop: 0.2
+
+  num_workers: 4      # original
+  # num_workers: 1    # BERNARDO
+
+  # batch_size: 8
+  batch_size: 10
+
+  # K: 2    # original
+  K: 1      # BERNARDO
+
+# Bernardo
+output_dir_annotation: ''
+
+train:
+  lr: 1e-5
+  arcface_lr: 1e-5
+  face_recog_lr: 1e-5
+  lambda1: 0.0    # reconstruction
+  lambda2: 1.0    # recognition
+  weight_decay: 1e-5
+  use_mask: True
+  reset_optimizer: True
+  max_steps: 160000
+  # log_steps: 50         # original
+  log_steps: 20           # Bernardo
+  # val_steps: 300        # original
+  val_steps:   100        # Bernardo
+  # vis_steps: 1200       # original
+  vis_steps: 100          # Bernardo
+  # val_save_img: 1200    # original
+  val_save_img: 100       # Bernardo
+  checkpoint_steps: 1000
+  checkpoint_epochs_steps: 10000
+  # loss: 'arcface'     # Bernardo
+  loss: 'cross-entropy' # Bernardo
+
+model:
+  use_pretrained: False # original
+  # use_pretrained: True    # Bernardo
+  n_shape: 300
+  # name: 'mica'          # original
+  name: 'micamultitaskfacerecognition1'
+
+  # face_embed: '3dmm'    # Bernardo
+  face_embed: 'arcface'   # Bernardo
+
+  # num_classes: 1945     # Bernardo
+  # num_classes: 2041     # Bernardo
+  # num_classes: 531      # Bernardo
+  # num_classes: 53       # Bernardo
+  num_classes: 10         # Bernardo

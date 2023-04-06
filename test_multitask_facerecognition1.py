@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     # # Original ARCFACE (no MICA train, sanity check)
     # model = '19_mica_duo_pretrainedARCFACE=ms1mv3-r100_fr-feat=original-arcface_ORIGINAL-ARCFACE'
-    # checkpoint = ''
+    # checkpoint = ''    # LFW: 99.8%,  MLFW: 91.8%,  TALFW: 68.2%
 
     # ARCFACE (2D only)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
@@ -57,8 +57,15 @@ if __name__ == '__main__':
     # checkpoint = 'model_20000.tar'
     # model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.02_lamb2=0.98'
     # checkpoint = 'model_30000.tar'     # LFW: 98.8%,  MLFW: 81.9%,  TALFW: 71.2%
-    model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99'
-    checkpoint = 'model_40000.tar'     # LFW: 99.0%,  MLFW: 82.4%,  TALFW: 71.0%
+    # model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99'
+    # checkpoint = 'model_40000.tar'     # LFW: 99.0%,  MLFW: 82.4%,  TALFW: 71.0%
+    # model = '26_SANITY-CHECK_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    # checkpoint = 'model_10000.tar'     # LFW: 99.4%,  MLFW: 83.3%,  TALFW: 73.1%
+    # checkpoint = 'model_20000.tar'     # LFW: 99.4%,  MLFW: 82.2%,  TALFW: 74.1%
+    # checkpoint = 'model_30000.tar'     # LFW: 99.5%,  MLFW: 81.5%,  TALFW: 74.1%
+    # checkpoint = 'model_120000.tar'    # LFW: 98.8%,  MLFW: 79.0%,  TALFW: 74.5%
+    # checkpoint = 'model_200000.tar'    # LFW: 98.8%,  MLFW: 77.6%,  TALFW: 75.2%
+    # checkpoint = 'model_600000.tar'    # LFW: 98.4%,  MLFW: 76.2%,  TALFW: 74.9%
 
     # # 3DMM (3D only)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
@@ -92,7 +99,12 @@ if __name__ == '__main__':
     # checkpoint = 'model_200000.tar'   # LFW: 90.4%,  MLFW: 62.4%,   TALFW: 74.3%
     # model = '24_PLOT-GRAD-ANGLES_SUM-LOSSES_mica_duo_MULTITASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=0.01_lamb2=0.99'
     # checkpoint = 'model_30000.tar'    # LFW: 89.5%,  MLFW: 70.3%,   TALFW: 63.7%
-    # checkpoint = 'model_100000.tar'    # LFW: 90.8%,  MLFW: 68.0%,   TALFW: 68.0%
+    # checkpoint = 'model_100000.tar'   # LFW: 90.8%,  MLFW: 68.0%,   TALFW: 68.0%
+    # model = '26_SANITY-CHECK_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    # checkpoint = 'model.tar'          # LFW: 96.9%,  MLFW: 76.0%,   TALFW: 68.3%
+    # checkpoint = 'model_10000.tar'    # LFW: 97.4%,  MLFW: 77.2%,   TALFW: 69.8%
+    # checkpoint = 'model_150000.tar'   # LFW: 97.4%,  MLFW: 73.3%,   TALFW: 74.4%
+    # checkpoint = 'model_200000.tar'   # LFW: 97.0%,  MLFW: 71.9%,   TALFW: 73.6%
 
     # Separated Multi-task (3DMM + Reconstruction)
     # model = '21_TRAIN-TASK-SEPARATED_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=1e-6_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
