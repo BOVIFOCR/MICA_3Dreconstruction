@@ -298,11 +298,6 @@ class TrainerMultitaskFacerecognition1(object):
             angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias  = self.get_angle_between_vectors_degree(grad_class_loss_wrt_features_bias, grad_pred_verts_shape_canonical_diff_wrt_features_bias)
             # print('    angle_features_bias:', angle_features_bias)
 
-            # # print('-------------')
-            # # sys.exit(0)
-            # return angle_features_weight, norm_grad_class_loss_wrt_features_weight, norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, \
-            #        angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias
-
             self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.weight:', angle_features_weight, global_step=global_step)
             self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.weight:', norm_grad_class_loss_wrt_features_weight, global_step=global_step)
             self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.weight:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, global_step=global_step)
@@ -381,9 +376,7 @@ class TrainerMultitaskFacerecognition1(object):
                     # for key in losses.keys():
                     #     losses[key].backward(retain_graph=True)     # Bernardo (experimenting train each loss separate)
 
-                # PRINT GRADIENT
-                # angle_features_weight, norm_grad_class_loss_wrt_features_weight, norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, \
-                # angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias = self.evaluate_gradients(losses)
+                # Bernardo: print gradient angles and norms
                 if self.cfg.train.compute_gradient_angles:
                     self.evaluate_gradients(losses, self.global_step)
 
@@ -412,14 +405,6 @@ class TrainerMultitaskFacerecognition1(object):
                     self.writer.add_scalar('train_loss/acc:', train_acc, global_step=self.global_step)
 
                     logger.info(loss_info)
-
-                    # # Bernardo (plot gradients angles and norms)
-                    # self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.weight:', angle_features_weight, global_step=self.global_step)
-                    # self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.weight:', norm_grad_class_loss_wrt_features_weight, global_step=self.global_step)
-                    # self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.weight:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, global_step=self.global_step)
-                    # self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.bias:', angle_features_bias, global_step=self.global_step)
-                    # self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.bias:', norm_grad_class_loss_wrt_features_bias, global_step=self.global_step)
-                    # self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.bias:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias, global_step=self.global_step)
 
 
                 if visualizeTraining and self.device == 0:
