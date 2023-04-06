@@ -169,9 +169,9 @@ if __name__ == '__main__':
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/26_SANITY-CHECK_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/26_SANITY-CHECK_SINGLE-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0.yml')
             # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/26_SANITY-CHECK_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
-            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/26_SANITY-CHECK_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
+            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/26_SANITY-CHECK_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0.yml')
 
-            # sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/99_ONLY-TEST_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_lr=1e-5_arc-lr=1e-5_fr-lr=1e-5_wd=2e-5_lamb1=1.0_lamb2=1.0.yml')
+            sys.argv.append('/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/99_ONLY-TEST.yml')
 
             sys.argv.append('--test_dataset')
             sys.argv.append('STIRLING')

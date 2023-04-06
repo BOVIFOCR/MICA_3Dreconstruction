@@ -281,7 +281,7 @@ class TrainerMultitaskFacerecognition1(object):
         return angle, a_norm, b_norm
 
     # Bernardo
-    def evaluate_gradients(self, losses):
+    def evaluate_gradients(self, losses, global_step):
         with torch.no_grad():
             named_parameters = {}
             for name, param in self.nfc.arcface.named_parameters():
@@ -298,10 +298,18 @@ class TrainerMultitaskFacerecognition1(object):
             angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias  = self.get_angle_between_vectors_degree(grad_class_loss_wrt_features_bias, grad_pred_verts_shape_canonical_diff_wrt_features_bias)
             # print('    angle_features_bias:', angle_features_bias)
 
-            # print('-------------')
-            # sys.exit(0)
-            return angle_features_weight, norm_grad_class_loss_wrt_features_weight, norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, \
-                   angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias
+            # # print('-------------')
+            # # sys.exit(0)
+            # return angle_features_weight, norm_grad_class_loss_wrt_features_weight, norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, \
+            #        angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias
+
+            self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.weight:', angle_features_weight, global_step=global_step)
+            self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.weight:', norm_grad_class_loss_wrt_features_weight, global_step=global_step)
+            self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.weight:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, global_step=global_step)
+            self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.bias:', angle_features_bias, global_step=global_step)
+            self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.bias:', norm_grad_class_loss_wrt_features_bias, global_step=global_step)
+            self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.bias:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias, global_step=global_step)
+
 
 
     # Bernardo
@@ -374,8 +382,10 @@ class TrainerMultitaskFacerecognition1(object):
                     #     losses[key].backward(retain_graph=True)     # Bernardo (experimenting train each loss separate)
 
                 # PRINT GRADIENT
-                angle_features_weight, norm_grad_class_loss_wrt_features_weight, norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, \
-                angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias = self.evaluate_gradients(losses)
+                # angle_features_weight, norm_grad_class_loss_wrt_features_weight, norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, \
+                # angle_features_bias, norm_grad_class_loss_wrt_features_bias, norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias = self.evaluate_gradients(losses)
+                if self.cfg.train.compute_gradient_angles:
+                    self.evaluate_gradients(losses, self.global_step)
 
                 self.opt.step()
                 self.global_step += 1
@@ -403,13 +413,13 @@ class TrainerMultitaskFacerecognition1(object):
 
                     logger.info(loss_info)
 
-                    # Bernardo (plot gradients angles and norms)
-                    self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.weight:', angle_features_weight, global_step=self.global_step)
-                    self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.weight:', norm_grad_class_loss_wrt_features_weight, global_step=self.global_step)
-                    self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.weight:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, global_step=self.global_step)
-                    self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.bias:', angle_features_bias, global_step=self.global_step)
-                    self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.bias:', norm_grad_class_loss_wrt_features_bias, global_step=self.global_step)
-                    self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.bias:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias, global_step=self.global_step)
+                    # # Bernardo (plot gradients angles and norms)
+                    # self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.weight:', angle_features_weight, global_step=self.global_step)
+                    # self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.weight:', norm_grad_class_loss_wrt_features_weight, global_step=self.global_step)
+                    # self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.weight:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_weight, global_step=self.global_step)
+                    # self.writer.add_scalar('train_gradients/angle_grad_losses_WRT_ArcFace_features.bias:', angle_features_bias, global_step=self.global_step)
+                    # self.writer.add_scalar('train_gradients/norm_grad_class_loss_WRT_ArcFace_features.bias:', norm_grad_class_loss_wrt_features_bias, global_step=self.global_step)
+                    # self.writer.add_scalar('train_gradients/norm_grad_pred_verts_shape_canonical_diff_WRT_ArcFace_features.bias:', norm_grad_pred_verts_shape_canonical_diff_wrt_features_bias, global_step=self.global_step)
 
 
                 if visualizeTraining and self.device == 0:
@@ -421,9 +431,10 @@ class TrainerMultitaskFacerecognition1(object):
                         self.writer.add_images(k, np.clip(v.detach().cpu(), 0.0, 1.0), self.global_step)
 
                     # SAVE CONFUSION MATRIX - Bernardo
-                    cf_matrix_epoch_train_fig = self.build_confusion_matrix_figure(self.cf_matrix_epoch_train, self.cfg.model.num_classes)
-                    self.writer.add_figure('cf_matrix_epoch_train', cf_matrix_epoch_train_fig, self.global_step)
-                    plt.close()
+                    if self.cfg.train.compute_confusion_matrix:
+                        cf_matrix_epoch_train_fig = self.build_confusion_matrix_figure(self.cf_matrix_epoch_train, self.cfg.model.num_classes)
+                        self.writer.add_figure('cf_matrix_epoch_train', cf_matrix_epoch_train_fig, self.global_step)
+                        plt.close()
 
                     pred_canonical_shape_vertices = torch.empty(0, 3, 512, 512).cuda()
                     flame_verts_shape = torch.empty(0, 3, 512, 512).cuda()
@@ -463,9 +474,8 @@ class TrainerMultitaskFacerecognition1(object):
                     # Bernardo (affinity score)
                     # Efficiently Identifying Task Groupings for Multi-Task Learning
                     # https://proceedings.neurips.cc/paper_files/paper/2021/file/e77910ebb93b511588557806310f78f1-Paper.pdf
-                    # for k in losses.keys():
-                    #     logger.info(f'  train_losses_history[{k}]: {self.train_losses_history[k]}')
-                    self.compute_save_affinity_score(self.train_losses_history, self.global_step)
+                    if self.cfg.train.compute_affinity_score:
+                        self.compute_save_affinity_score(self.train_losses_history, self.global_step)
 
                     # # early stopping (Bernardo)
                     # std_val_average_loss_step = np.std(np.array(all_val_average_loss_step[-self.early_stop_patience:]))
