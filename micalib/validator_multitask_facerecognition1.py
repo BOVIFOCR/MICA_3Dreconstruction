@@ -15,7 +15,7 @@
 # Contact: mica@tue.mpg.de
 
 
-import os
+import os, sys
 import subprocess
 from copy import deepcopy
 from datetime import datetime
@@ -135,37 +135,44 @@ class ValidatorMultitaskFacerecognition1(object):
                 losses['all_loss'] = all_loss
 
 
-                loss = losses['pred_verts_shape_canonical_diff']                    # Bernardo
-                # loss = losses['all_loss']                                         # Bernardo
+                loss_pred_verts = losses['pred_verts_shape_canonical_diff']      # Bernardo
+                loss_class = losses['class_loss']                                # Bernardo
+                loss_all = losses['all_loss']                                    # Bernardo
+                # loss = losses['all_loss']                                      # Bernardo
 
-                # optdicts.append((opdict, images, dataset, actors, loss))          # original
-                optdicts.append((opdict, images, dataset, actors, loss, metrics))   # Bernardo
-
+                # optdicts.append((opdict, images, dataset, actors, loss))       # original
+                optdicts.append((opdict, images, dataset, actors, loss_pred_verts, loss_class, loss_all, metrics))   # Bernardo
 
             # Calculate averages
             weighted_average = 0.
-            average = 0.
+            avg_loss_pred_verts = 0.
+            avg_loss_class = 0.
+            avg_loss_all = 0.
             avg_per_dataset = {}
             avg_acc = 0.   # Bernardo
             for optdict in optdicts:
                 # opdict, images, dataset, actors, loss = optdict   # original
-                opdict, images, dataset, actors, loss, metric = optdict   # Bernardo
+                opdict, images, dataset, actors, loss_pred_verts, loss_class, loss_all, metric = optdict   # Bernardo
                 name = dataset[0]
-                average += loss
+                avg_loss_pred_verts += loss_pred_verts
+                avg_loss_class += loss_class
+                avg_loss_all += loss_all
                 avg_acc += metric['acc']
                 if name not in avg_per_dataset:
-                    avg_per_dataset[name] = (loss, 1.)
+                    avg_per_dataset[name] = (loss_pred_verts, 1.)
                 else:
                     l, i = avg_per_dataset[name]
-                    avg_per_dataset[name] = (l + loss, i + 1.)
+                    avg_per_dataset[name] = (l + loss_pred_verts, i + 1.)
 
-            average = average.item() / len(optdicts)
+            avg_loss_pred_verts = avg_loss_pred_verts.item() / len(optdicts)
+            avg_loss_class = avg_loss_class.item() / len(optdicts)
+            avg_loss_all = avg_loss_all.item() / len(optdicts)
             avg_acc = avg_acc.item() / len(optdicts)
 
             '''
             # original
             loss_info = f"Step: {self.trainer.global_step},  Time: {datetime.now().strftime('%Y-%m-%d-%H:%M:%S')} \n"
-            loss_info += f'  validation loss (average)         : {average:.5f} \n'
+            loss_info += f'  validation loss (avg_loss_pred_verts)         : {avg_loss_pred_verts:.5f} \n'
             logger.info(loss_info)
             '''
 
@@ -175,21 +182,24 @@ class ValidatorMultitaskFacerecognition1(object):
                 loss_info = loss_info + f'  validation {k}: {v:.4f}\n'
                 if self.cfg.train.write_summary:
                     self.trainer.writer.add_scalar('val_loss/' + k, v, global_step=self.trainer.global_step)
-            self.trainer.writer.add_scalar('val_loss/acc', avg_acc, global_step=self.trainer.global_step)
-            loss_info += f'  validation loss (average)         : {average:.5f} \n'
-            loss_info += f'  validation acc (average)         : {avg_acc:.5f} \n'
+            loss_info += f'  validation loss (avg_loss_pred_verts)  : {avg_loss_pred_verts:.5f} \n'
+            loss_info += f'  validation acc (avg_acc)  : {avg_acc:.5f} \n'
             logger.info(loss_info)
+            self.trainer.writer.add_scalar('val_loss/avg_pred_verts_loss', avg_loss_pred_verts, global_step=self.trainer.global_step)
+            self.trainer.writer.add_scalar('val_loss/avg_class_loss', avg_loss_class, global_step=self.trainer.global_step)
+            self.trainer.writer.add_scalar('val_loss/avg_all_loss', avg_loss_all, global_step=self.trainer.global_step)
+            self.trainer.writer.add_scalar('val_loss/avg_acc', avg_acc, global_step=self.trainer.global_step)
+            
 
-
-            self.trainer.writer.add_scalar('val/average', average, global_step=self.trainer.global_step)
+            self.trainer.writer.add_scalar('val/avg_loss_pred_verts', avg_loss_pred_verts, global_step=self.trainer.global_step)
             for key in avg_per_dataset.keys():
                 l, i = avg_per_dataset[key]
                 avg = l.item() / i
-                self.trainer.writer.add_scalar(f'val/average_{key}', avg, global_step=self.trainer.global_step)
+                self.trainer.writer.add_scalar(f'val/avg_{key}', avg, global_step=self.trainer.global_step)
 
             # Save best model
-            smoothed_weighted, smoothed = self.best_model(weighted_average, average)
-            self.trainer.writer.add_scalar(f'val/smoothed_average', smoothed, global_step=self.trainer.global_step)
+            smoothed_weighted, smoothed = self.best_model(weighted_average, avg_loss_pred_verts)
+            self.trainer.writer.add_scalar(f'val/smoothed_avg', smoothed, global_step=self.trainer.global_step)
 
             # self.now()    # Originally commented
 
@@ -203,7 +213,7 @@ class ValidatorMultitaskFacerecognition1(object):
             # Render predicted meshes
             if self.trainer.global_step % self.cfg.train.val_save_img != 0:
                 # return                           # original
-                return average, smoothed, avg_acc  # Bernardo
+                return avg_loss_pred_verts, avg_loss_class, avg_loss_all, avg_acc  # Bernardo
 
             pred_canonical_shape_vertices = torch.empty(0, 3, 512, 512).cuda()
             flame_verts_shape = torch.empty(0, 3, 512, 512).cuda()
@@ -211,7 +221,7 @@ class ValidatorMultitaskFacerecognition1(object):
 
             for i in np.random.choice(range(0, len(optdicts)), size=4, replace=False):
                 # opdict, images, _, _, _ = optdicts[i]    # original
-                opdict, images, _, _, _, _ = optdicts[i]   # Bernardo
+                opdict, images, _, _, _, _, _, _ = optdicts[i]   # Bernardo
 
                 # n = np.random.randint(0, len(images) - 1)   # original
                 n = np.random.randint(0, len(images))         # Bernardo (to avoid errors when the batch has only one sample)
@@ -232,7 +242,7 @@ class ValidatorMultitaskFacerecognition1(object):
             util.visualize_grid(visdict, savepath, size=512)
 
             # Bernardo
-            return average, smoothed, avg_acc
+            return avg_loss_pred_verts, avg_loss_class, avg_loss_all, avg_acc
 
 
     def now(self):

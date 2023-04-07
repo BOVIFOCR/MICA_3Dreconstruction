@@ -213,8 +213,8 @@ class TrainerMultitaskFacerecognition1(object):
         return losses, opdict
 
     def validation_step(self):
-        average_loss, smoothed_loss, avg_acc_fr = self.validator.run()
-        return average_loss, smoothed_loss, avg_acc_fr
+        val_avg_loss_pred_verts, val_avg_loss_class, val_avg_loss_all, val_avg_acc = self.validator.run()
+        return val_avg_loss_pred_verts, val_avg_loss_class, val_avg_loss_all, val_avg_acc
 
     def evaluation_step(self):
         pass
@@ -333,13 +333,19 @@ class TrainerMultitaskFacerecognition1(object):
 
         # Bernardo (affinity score)
         self.train_losses_history = {'pred_verts_shape_canonical_diff': [], 'class_loss': [], 'all_loss': []}
+        self.cf_matrix_epoch_train = np.zeros(shape=(self.cfg.model.num_classes, self.cfg.model.num_classes), dtype=np.float32)
+        self.epoch_train_metrics = {}
 
         # for epoch in range(start_epoch, max_epochs):   # original
         while not self.early_stop:                       # Bernardo
 
             # Bernardo
-            self.cf_matrix_epoch_train = np.zeros(shape=(self.cfg.model.num_classes, self.cfg.model.num_classes), dtype=np.float32)
-
+            self.cf_matrix_epoch_train[:] = .0
+            self.epoch_train_metrics['epoch_pred_verts_shape_canonical_diff'] = .0
+            self.epoch_train_metrics['epoch_class_loss'] = .0
+            self.epoch_train_metrics['epoch_all_loss'] = .0
+            self.epoch_train_metrics['epoch_acc'] = .0
+            
             # print('trainer.py: Trainer: fit(): epoch:', epoch, '    iters_every_epoch:', iters_every_epoch)   # Bernardo
             # for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{epoch + 1}/{max_epochs}]"):
             for step in tqdm(range(iters_every_epoch), desc=f"Epoch[{self.epoch}]"):
@@ -364,10 +370,17 @@ class TrainerMultitaskFacerecognition1(object):
 
                 all_loss = losses['all_loss']
 
+                # Bernardo
+                self.epoch_train_metrics['epoch_pred_verts_shape_canonical_diff'] += losses['pred_verts_shape_canonical_diff']
+                self.epoch_train_metrics['epoch_class_loss'] += losses['class_loss']
+                self.epoch_train_metrics['epoch_all_loss'] += losses['all_loss']
+                self.epoch_train_metrics['epoch_acc'] += opdict['metrics']['acc']
+
+
                 # all_loss.backward()   # original
                 if self.cfg.train.loss_mode == 'sum_all':
-                    # all_loss.backward()
-                    all_loss.backward(retain_graph=True)   # FOR GRADIENT TESTS
+                    all_loss.backward()
+                    # all_loss.backward(retain_graph=True)   # FOR GRADIENT TESTS
                 elif self.cfg.train.loss_mode == 'separate':
                     if self.cfg.train.train_reconstruction:
                         losses['pred_verts_shape_canonical_diff'].backward(retain_graph=True)
@@ -395,14 +408,14 @@ class TrainerMultitaskFacerecognition1(object):
                     for k, v in losses.items():
                         loss_info = loss_info + f'  {k}: {v:.4f}\n'
                         if self.cfg.train.write_summary:
-                            self.writer.add_scalar('train_loss/' + k, v, global_step=self.global_step)
+                            self.writer.add_scalar('train_loss/step_' + k, v, global_step=self.global_step)
                             self.train_losses_history[k].append(float(v.detach().cpu().numpy()))
 
                     # Bernardo
                     train_acc = opdict['metrics']['acc']
                     loss_info = loss_info + f'  acc: {train_acc:.4f}\n'
                     loss_info = loss_info + f'  self.cfg.output_dir: {self.cfg.output_dir}\n'
-                    self.writer.add_scalar('train_loss/acc:', train_acc, global_step=self.global_step)
+                    self.writer.add_scalar('train_loss/step_acc:', train_acc, global_step=self.global_step)
 
                     logger.info(loss_info)
 
@@ -451,10 +464,16 @@ class TrainerMultitaskFacerecognition1(object):
 
                 if self.global_step % self.cfg.train.val_steps == 0:
                     # self.validation_step()   # original
-                    val_average_loss_step, val_smoothed_loss_step, val_avg_acc_fr_step = self.validation_step()   # Bernardo
-                    all_val_average_loss_step.append(val_average_loss_step)
-                    all_val_smoothed_loss_step.append(val_smoothed_loss_step)
-                    all_val_avg_acc_fr_step.append(val_avg_acc_fr_step)
+                    # val_average_loss_step, val_smoothed_loss_step, val_avg_acc_fr_step = self.validation_step()   # Bernardo
+                    val_avg_loss_pred_verts, val_avg_loss_class, val_avg_loss_all, val_avg_acc = self.validation_step()   # Bernardo
+                    # all_val_average_loss_step.append(val_average_loss_step)
+                    # all_val_smoothed_loss_step.append(val_smoothed_loss_step)
+                    # all_val_avg_acc_fr_step.append(val_avg_acc_fr_step)
+
+                    self.writer.add_scalars('train_val/acc', {'epoch_val_acc': val_avg_acc}, global_step=self.global_step)
+                    self.writer.add_scalars('train_val/pred_loss', {'epoch_val_pred_loss':val_avg_loss_pred_verts}, global_step=self.global_step)
+                    self.writer.add_scalars('train_val/class_loss', {'epoch_val_class_loss':val_avg_loss_class}, global_step=self.global_step)
+                    self.writer.add_scalars('train_val/all_loss', {'epoch_val_all_loss':val_avg_loss_all}, global_step=self.global_step)
 
                     # Bernardo (affinity score)
                     # Efficiently Identifying Task Groupings for Multi-Task Learning
@@ -496,6 +515,15 @@ class TrainerMultitaskFacerecognition1(object):
             #         print('Early stop!')
             # print(f'val_average_loss_epoch: {val_average_loss_epoch},   last_val_average_loss_epoch: {last_val_average_loss_epoch}')
             # last_val_average_loss_epoch = val_average_loss_epoch
+
+            for key in self.epoch_train_metrics.keys():
+                self.epoch_train_metrics[key] /= iters_every_epoch
+                self.writer.add_scalar('train_loss/' + key, self.epoch_train_metrics[key], global_step=self.epoch)
+            
+            self.writer.add_scalars('train_val/acc', {'epoch_train_acc':self.epoch_train_metrics['epoch_acc']}, global_step=self.global_step)
+            self.writer.add_scalars('train_val/pred_loss', {'epoch_train_pred_loss':self.epoch_train_metrics['epoch_pred_verts_shape_canonical_diff']}, global_step=self.global_step)
+            self.writer.add_scalars('train_val/class_loss', {'epoch_train_class_loss':self.epoch_train_metrics['epoch_class_loss']}, global_step=self.global_step)
+            self.writer.add_scalars('train_val/all_loss', {'epoch_train_all_loss':self.epoch_train_metrics['epoch_all_loss']}, global_step=self.global_step)
 
             self.epoch += 1
 
