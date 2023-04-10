@@ -30,6 +30,7 @@ from tqdm import tqdm
 import datasets
 from configs.config import cfg
 from utils import util
+from utils.pytorchtools import EarlyStopping
 
 # from sklearn.metrics import confusion_matrix
 import seaborn as sn
@@ -82,10 +83,10 @@ class TrainerMultitaskFacerecognition1(object):
 
         # Bernardo
         self.labels_map = {}
-        self.early_stop = False
         self.early_stop_tolerance = self.cfg.train.early_stop_tolerance   # std/avg (Bernardo)
         self.early_stop_patience = self.cfg.train.early_stop_patience     # Bernardo
-        
+        self.early_stopping = EarlyStopping(patience=self.early_stop_patience, verbose=True, delta=self.early_stop_tolerance)
+
         # reset optimizer if loaded from pretrained model
         if self.cfg.train.reset_optimizer:
             self.configure_optimizers()  # reset optimizer
@@ -336,6 +337,7 @@ class TrainerMultitaskFacerecognition1(object):
         self.cf_matrix_epoch_train = np.zeros(shape=(self.cfg.model.num_classes, self.cfg.model.num_classes), dtype=np.float32)
         self.epoch_train_metrics = {}
 
+        self.early_stop = False
         # for epoch in range(start_epoch, max_epochs):   # original
         while not self.early_stop:                       # Bernardo
 
@@ -466,9 +468,6 @@ class TrainerMultitaskFacerecognition1(object):
                     # self.validation_step()   # original
                     # val_average_loss_step, val_smoothed_loss_step, val_avg_acc_fr_step = self.validation_step()   # Bernardo
                     val_avg_loss_pred_verts, val_avg_loss_class, val_avg_loss_all, val_avg_acc = self.validation_step()   # Bernardo
-                    # all_val_average_loss_step.append(val_average_loss_step)
-                    # all_val_smoothed_loss_step.append(val_smoothed_loss_step)
-                    # all_val_avg_acc_fr_step.append(val_avg_acc_fr_step)
 
                     self.writer.add_scalars('train_val/acc', {'epoch_val_acc': val_avg_acc}, global_step=self.global_step)
                     self.writer.add_scalars('train_val/pred_loss', {'epoch_val_pred_loss':val_avg_loss_pred_verts}, global_step=self.global_step)
@@ -481,20 +480,9 @@ class TrainerMultitaskFacerecognition1(object):
                     if self.cfg.train.compute_affinity_score:
                         self.compute_save_affinity_score(self.train_losses_history, self.global_step)
 
-                    # # early stopping (Bernardo)
-                    # std_val_average_loss_step = np.std(np.array(all_val_average_loss_step[-self.early_stop_patience:]))
-                    # mean_val_average_loss_step = np.mean(np.array(all_val_average_loss_step[-self.early_stop_patience:]))
-                    # std_over_mean = std_val_average_loss_step / mean_val_average_loss_step
-                    # print(f'all_val_average_loss_step: {all_val_average_loss_step}')
-                    # print(f'std_val_average_loss_step: {std_val_average_loss_step}')
-                    # print(f'mean_val_average_loss_step: {mean_val_average_loss_step}')
-                    # print(f'std_over_mean: {std_over_mean}')
-                    # print(f'self.early_stop_tolerance: {self.early_stop_tolerance}')
-                    # print()
-                    # if len(all_val_average_loss_step) >= self.early_stop_patience:
-                    #     if std_over_mean <= self.early_stop_tolerance:
-                    #         self.early_stop = True
-                    #         print('Early stop!')
+                    self.early_stopping(val_avg_loss_all)
+                    self.early_stop = self.early_stopping.early_stop
+
 
                 if self.global_step % self.cfg.train.lr_update_step == 0:
                     self.scheduler.step()
@@ -508,24 +496,20 @@ class TrainerMultitaskFacerecognition1(object):
                 if self.global_step % self.cfg.train.checkpoint_epochs_steps == 0:
                     self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model_' + str(self.global_step) + '.tar'))
 
-            # # early stopping (Bernardo)
-            # if self.epoch > 0:
-            #     if val_average_loss_epoch >= last_val_average_loss_epoch + 0.1:
-            #         self.early_stop = True
-            #         print('Early stop!')
-            # print(f'val_average_loss_epoch: {val_average_loss_epoch},   last_val_average_loss_epoch: {last_val_average_loss_epoch}')
-            # last_val_average_loss_epoch = val_average_loss_epoch
 
             for key in self.epoch_train_metrics.keys():
                 self.epoch_train_metrics[key] /= iters_every_epoch
                 self.writer.add_scalar('train_loss/' + key, self.epoch_train_metrics[key], global_step=self.epoch)
-            
+
             self.writer.add_scalars('train_val/acc', {'epoch_train_acc':self.epoch_train_metrics['epoch_acc']}, global_step=self.global_step)
             self.writer.add_scalars('train_val/pred_loss', {'epoch_train_pred_loss':self.epoch_train_metrics['epoch_pred_verts_shape_canonical_diff']}, global_step=self.global_step)
             self.writer.add_scalars('train_val/class_loss', {'epoch_train_class_loss':self.epoch_train_metrics['epoch_class_loss']}, global_step=self.global_step)
             self.writer.add_scalars('train_val/all_loss', {'epoch_train_all_loss':self.epoch_train_metrics['epoch_all_loss']}, global_step=self.global_step)
 
             self.epoch += 1
+
+        if self.early_stop:
+            print('Early stop - self.early_stop:', self.early_stop)
 
         self.save_checkpoint(os.path.join(self.cfg.output_dir, 'model' + '.tar'))
         logger.info(f'[TRAINER] Fitting has ended! - epoch: {self.epoch}')

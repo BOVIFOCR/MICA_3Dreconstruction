@@ -65,7 +65,6 @@ if __name__ == '__main__':
     # checkpoint = 'model_30000.tar'     # LFW: 99.5%,  MLFW: 81.5%,  TALFW: 74.1%
     # checkpoint = 'model_120000.tar'    # LFW: 98.8%,  MLFW: 79.0%,  TALFW: 74.5%
     # checkpoint = 'model_200000.tar'    # LFW: 98.8%,  MLFW: 77.6%,  TALFW: 75.2%
-    # checkpoint = 'model_600000.tar'    # LFW: 98.4%,  MLFW: 76.2%,  TALFW: 74.9%
 
     # # 3DMM (3D only)
     # model = '16_mica_duo_MULTITASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-7_wd=2e-5_lamb1=0.0_lamb2=1.0'
