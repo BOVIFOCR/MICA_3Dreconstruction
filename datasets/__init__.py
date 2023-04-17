@@ -69,7 +69,7 @@ def get_labels_map(train_dataset, val_dataset):
 
 
 # Bernardo
-def build_train_multitask_facerecognition(config, device):
+def build_train_multitask_facerecognition(config, device, cfg):
     data_list = []
     total_images = 0
     for dataset in config.training_data:
@@ -80,7 +80,7 @@ def build_train_multitask_facerecognition(config, device):
             config.n_train = n_train
 
         # dataset = BaseDataset(name=dataset_name, config=config, device=device, isEval=False)
-        dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=False)    # Bernardo
+        dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=False, cfg=cfg)  # Bernardo
 
         data_list.append(dataset)
         total_images += dataset.total_images
@@ -89,7 +89,7 @@ def build_train_multitask_facerecognition(config, device):
 
 
 # Bernardo
-def build_val_multitask_facerecognition(config, device):
+def build_val_multitask_facerecognition(config, device, cfg):
     data_list = []
     total_images = 0
     for dataset in config.eval_data:
@@ -100,8 +100,8 @@ def build_val_multitask_facerecognition(config, device):
             config.n_train = n_train
 
         # dataset = BaseDataset(name=dataset_name, config=config, device=device, isEval=True)
-        dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=True)    # Bernardo
-        # dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=False)    # Bernardo
+        dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=True, cfg=cfg)  # Bernardo
+        # dataset = BaseDataset_MultitaskFaceRecognition(name=dataset_name, config=config, device=device, isEval=False)        # Bernardo
 
         data_list.append(dataset)
         total_images += dataset.total_images

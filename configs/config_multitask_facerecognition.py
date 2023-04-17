@@ -64,19 +64,19 @@ cfg.model.num_classes = 2041       # Bernardo
 # Options for Dataset
 # ---------------------------------------------------------------------------- #
 cfg.dataset = CN()
-# cfg.dataset.training_data = ['LYHM']  # Original
-cfg.dataset.training_data = ['FRGC']     # BERNARDO
-# cfg.dataset.eval_data = ['FLORENCE']  # original
-cfg.dataset.eval_data = ['FACEWAREHOUSE']    # Bernardo
-cfg.dataset.train_prop = 0.8
-cfg.dataset.eval_prop = 1 - cfg.dataset.train_prop
+# cfg.dataset.training_data = ['LYHM']                # original
+cfg.dataset.training_data = ['FRGC']                  # Bernardo
+# cfg.dataset.eval_data = ['FLORENCE']                # original
+cfg.dataset.eval_data = ['FACEWAREHOUSE']             # Bernardo
+cfg.dataset.train_prop = 0.8                          # Bernardo
+cfg.dataset.eval_prop = 1 - cfg.dataset.train_prop    # Bernardo
 cfg.dataset.batch_size = 2
 cfg.dataset.K = 4
 cfg.dataset.n_train = 100000
 cfg.dataset.num_workers = 4
-# cfg.dataset.root = '/home/bjgbiesseck/GitHub/MICA/datasets/MICA/'  # BERNARDO
-cfg.dataset.root = '/datasets1/bjgbiesseck/MICA/'                    # BERNARDO
-cfg.dataset.norm = '0,1_min-max' # BERNARDO
+# cfg.dataset.root = '/home/bjgbiesseck/GitHub/MICA/datasets/MICA/'  # Bernardo
+cfg.dataset.root = '/datasets1/bjgbiesseck/MICA/'                    # Bernardo
+cfg.dataset.norm = '0,1_min-max'                                     # Bernardo
 
 
 # ---------------------------------------------------------------------------- #
@@ -120,6 +120,7 @@ cfg.train.arcface_scale1 = 64.0              # Bernardo
 cfg.train.compute_confusion_matrix = False   # Bernardo
 cfg.train.compute_affinity_score = False     # Bernardo
 cfg.train.compute_gradient_angles = False    # Bernardo
+cfg.train.use_masked_faces = False           # Bernardo
 cfg.train.weight_decay = 0.0
 cfg.train.lr_update_step = 100000000
 cfg.train.log_dir = 'logs'

@@ -224,8 +224,8 @@ class TrainerMultitaskFacerecognition1(object):
         generator = torch.Generator()
         generator.manual_seed(self.device)
 
-        # self.train_dataset, total_images = datasets.build_train(self.cfg.dataset, self.device)                            # original
-        self.train_dataset, total_images = datasets.build_train_multitask_facerecognition(self.cfg.dataset, self.device)    # Bernardo
+        # self.train_dataset, total_images = datasets.build_train(self.cfg.dataset, self.device)                                    # original
+        self.train_dataset, total_images = datasets.build_train_multitask_facerecognition(self.cfg.dataset, self.device, self.cfg)  # Bernardo
 
         # Bernardo
         self.labels_map = datasets.get_labels_map(self.train_dataset, self.validator.val_dataset)

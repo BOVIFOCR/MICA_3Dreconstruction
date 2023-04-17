@@ -28,8 +28,8 @@ dataset:
   num_workers: 4      # original
   # num_workers: 1    # BERNARDO
 
-  # batch_size: 8
-  batch_size: 10
+  batch_size: 8
+  # batch_size: 10
 
   # K: 2    # original
   K: 1      # BERNARDO
@@ -61,10 +61,15 @@ train:
   loss: 'arcface'         # Bernardo
   arcface_margin1: 0.5    # Bernardo
   arcface_scale1: 32.0    # Bernardo
+  compute_confusion_matrix: True   # Bernardo
+  compute_affinity_score: False    # Bernardo
+  compute_gradient_angles: False   # Bernardo
+  early_stop_tolerance: 0.1        # Bernardo
+  early_stop_patience: 10          # Bernardo
 
 model:
-  use_pretrained: False # original
-  # use_pretrained: True    # Bernardo
+  use_pretrained: False   # original
+  # use_pretrained: True  # Bernardo
   n_shape: 300
   # name: 'mica'          # original
   name: 'micamultitaskfacerecognition1'

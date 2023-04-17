@@ -54,8 +54,8 @@ class ValidatorMultitaskFacerecognition1(object):
         self.labels_map = labels_map
 
     def prepare_data(self):
-        # self.val_dataset, total_images = datasets.build_val(self.cfg.dataset, self.device)                           # original
-        self.val_dataset, total_images = datasets.build_val_multitask_facerecognition(self.cfg.dataset, self.device)   # Bernardo
+        # self.val_dataset, total_images = datasets.build_val(self.cfg.dataset, self.device)                                    # original
+        self.val_dataset, total_images = datasets.build_val_multitask_facerecognition(self.cfg.dataset, self.device, self.cfg)  # Bernardo
 
         self.val_dataloader = DataLoader(
             self.val_dataset,

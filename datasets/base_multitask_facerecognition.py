@@ -31,10 +31,11 @@ from torchvision import transforms
 
 
 class BaseDataset_MultitaskFaceRecognition(Dataset, ABC):
-    def __init__(self, name, config, device, isEval):
+    def __init__(self, name, config, device, isEval, cfg):
         self.config = config    # Bernardo
         self.K = config.K
         self.isEval = isEval
+        self.cfg = cfg          # Bernardo
         self.n_train = np.Inf
         self.imagepaths = []
         self.face_dict = {}
@@ -51,7 +52,16 @@ class BaseDataset_MultitaskFaceRecognition(Dataset, ABC):
 
     def initialize(self):
         logger.info(f'[{self.name}] Initialization')
-        image_list = f'{os.path.abspath(os.path.dirname(__file__))}/image_paths/{self.name}.npy'
+        
+        # original
+        # image_list = f'{os.path.abspath(os.path.dirname(__file__))}/image_paths/{self.name}.npy'
+        
+        # Bernardo
+        if self.cfg.train.use_masked_faces:
+            image_list = f'{os.path.abspath(os.path.dirname(__file__))}/image_paths/{self.name}_augmented_mask.npy'
+        else:
+            image_list = f'{os.path.abspath(os.path.dirname(__file__))}/image_paths/{self.name}.npy'
+
         logger.info(f'[{self.name}] Load cached file list: ' + image_list)
         self.face_dict = np.load(image_list, allow_pickle=True).item()
         self.imagepaths = list(self.face_dict.keys())
