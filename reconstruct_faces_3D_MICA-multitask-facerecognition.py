@@ -224,19 +224,21 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')                                          # BERNARDO
     # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')                                            # BERNARDO
     # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')                    # BERNARDO
-    # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')          # BERNARDO
+    parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')          # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced', type=str, help='Input folder with images')  # BERNARDO
     # parser.add_argument('-i', default='demo/input/MLFW_small', type=str, help='Input folder with images')                                     # BERNARDO
-    parser.add_argument('-i', default='demo/input/MLFW/origin', type=str, help='Input folder with images')                                      # BERNARDO
+    # parser.add_argument('-i', default='demo/input/MLFW/origin', type=str, help='Input folder with images')                                      # BERNARDO
 
     # parser.add_argument('-exp', default='', type=str, help='Processed images for MICA input')
-    parser.add_argument('-exp', default='4_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100', type=str, help='Processed images for MICA input')
+    # parser.add_argument('-exp', default='4_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100', type=str, help='Processed images for MICA input')
     # parser.add_argument('-exp', default='6_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100', type=str, help='Processed images for MICA input')
     # parser.add_argument('-exp', default='11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0', type=str, help='Processed images for MICA input')
     # parser.add_argument('-exp', default='11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0', type=str, help='Processed images for MICA input')
     # parser.add_argument('-exp', default='12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-6_lamb1=0.5_lamb2=1.0', type=str, help='Processed images for MICA input')
     # parser.add_argument('-exp', default='12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0', type=str, help='Processed images for MICA input')
     # parser.add_argument('-exp', default='12_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,Stirling,FACEWAREHOUSE_eval=FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0', type=str, help='Processed images for MICA input')
+
+    parser.add_argument('-exp', default='26_SANITY-CHECK_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0', type=str, help='Processed images for MICA input')
 
     # parser.add_argument('-o', default='output' +'_'+exp, type=str, help='Output folder')
     # parser.add_argument('-a', default='arcface'+'_'+exp, type=str, help='Processed images for MICA input')
@@ -249,9 +251,14 @@ if __name__ == '__main__':
     parser.add_argument('-str_end', default='', type=str, help='Substring to find and stop processing')
 
     args = parser.parse_args()
-    args.o = 'output'  + '_' + args.exp
+    
+    # args.o = 'output'  + '_' + args.exp
+    args.o = 'output/MS-Celeb-1M/ms1m-retinaface-t1/3D_reconstruction/' + args.exp + '/'
+    
     args.a = 'arcface' + '_' + args.exp
-    args.m = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/' + args.exp + '/model.tar'
+    
+    # args.m = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/' + args.exp + '/model.tar'
+    args.m = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/' + args.exp + '/model_290000.tar'
 
     cfg = get_cfg_defaults()
 

@@ -32,7 +32,8 @@ root = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/'        
 # experiments = ['5_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedCOSFACE=glint360k-r100']   # Bernardo
 # experiments = ['6_mica_duo_TESTS_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100']   # Bernardo
 # experiments = ['10_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5']   # Bernardo
-experiments = ['11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0']   # Bernardo
+# experiments = ['11_mica_duo_MULTITASK-VALIDATION-WORKING_train=FRGC,LYHM,FLORENCE,FACEWAREHOUSE_eval=Stirling_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_lamb1=0.5_lamb2=1.0']   # Bernardo
+experiments = ['27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0']   # Bernardo
 
 
 def test():
@@ -82,6 +83,8 @@ def test():
             print('predicted_meshes:', predicted_meshes)
             print('run:', run)
 
+            '''
+            # original
             with open(f'{jobs}/{run}.sub', 'w') as fid:
                 fid.write('executable = /bin/bash\n')
 
@@ -97,6 +100,12 @@ def test():
                 fid.write(f'requirements = (TARGET.CUDAGlobalMemoryMb > 5000) && (TARGET.CUDAGlobalMemoryMb < 33000)\n')
                 fid.write(f'request_memory = 8192\n')
                 fid.write(f'queue\n')
+            '''
+
+            # Bernardo
+            # arguments = f'/home/wzielonka/projects/MICA/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'    # original
+            # arguments = f'/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/template.sh {experiment} {checkpoint} now {predicted_meshes}'      # BERNARDO
+            arguments = f'/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/template_multitask_facerecognition1.sh {experiment} {checkpoint} now {predicted_meshes}'      # BERNARDO
 
             # os.system(f'condor_submit_bid 512 {jobs}/{run}.sub')   # original
             # os.system(f'condor_submit {jobs}/{run}.sub')             # Bernardo

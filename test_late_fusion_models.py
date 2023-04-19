@@ -47,15 +47,15 @@ if __name__ == '__main__':
 
     # # LFW Dataset
     # file_model1 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/19_mica_duo_pretrainedARCFACE=ms1mv3-r100_fr-feat=original-arcface_ORIGINAL-ARCFACE/cos-sims_checkpoint=_dataset=LFW.npy'
-    # file_model2 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0/cos-sims_checkpoint=model_30000.tar_dataset=LFW.npy'
-    
-    # # MLFW Dataset
+    # file_model2 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0/cos-sims_checkpoint=model_60000.tar_dataset=LFW.npy'
+
+    # MLFW Dataset
     file_model1 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/19_mica_duo_pretrainedARCFACE=ms1mv3-r100_fr-feat=original-arcface_ORIGINAL-ARCFACE/cos-sims_checkpoint=_dataset=MLFW.npy'
-    file_model2 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0/cos-sims_checkpoint=model_30000.tar_dataset=MLFW.npy'
-    
+    file_model2 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0/cos-sims_checkpoint=model_60000.tar_dataset=MLFW.npy'
+
     # TALFW Dataset
     # file_model1 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/19_mica_duo_pretrainedARCFACE=ms1mv3-r100_fr-feat=original-arcface_ORIGINAL-ARCFACE/cos-sims_checkpoint=_dataset=TALFW.npy'
-    # file_model2 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0/cos-sims_checkpoint=model_30000.tar_dataset=TALFW.npy'
+    # file_model2 = '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/output/27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0/cos-sims_checkpoint=model_60000.tar_dataset=TALFW.npy'
 
     # file_model1 = file_model2
     # file_model2 = file_model1
@@ -66,8 +66,19 @@ if __name__ == '__main__':
 
     sims_model1, pair_labels_model1 = data_model1['cos-sims'], data_model1['pair_labels']
     sims_model2, pair_labels_model2 = data_model2['cos-sims'], data_model2['pair_labels']
+    
+    # AVERAGE DISTANCE
+    # final_sims = (sims_model1 + sims_model2) / 2
 
-    final_sims = (sims_model1 + sims_model2) / 2
+    # # MINIMUM DISTANCE
+    # final_sims = np.zeros(shape=sims_model1.shape, dtype=float)
+    # for i in range(len(final_sims)):
+    #     final_sims[i] = np.minimum(sims_model1[i], sims_model2[i])
+
+    # MAXIMUM DISTANCE
+    final_sims = np.zeros(shape=sims_model1.shape, dtype=float)
+    for i in range(len(final_sims)):
+        final_sims[i] = np.maximum(sims_model1[i], sims_model2[i])
 
     print('\nFindind best treshold...')
     best_tresh, best_acc = find_best_treshold(pair_labels_model1, final_sims)

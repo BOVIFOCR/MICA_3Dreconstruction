@@ -39,7 +39,8 @@ NOW=/datasets1/bjgbiesseck/NoWDataset/NoW_Dataset/final_release_version/    # Be
 
 # BERNARDO
 image_set=val
-error_out_path=/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/logs
+# error_out_path=/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/logs
+error_out_path=/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/testing/now/logs/${EXPERIMENT}
 method_identifier=${EXPERIMENT}
 gt_mesh_folder=${NOW}/scans
 gt_lmk_folder=${NOW}/scans_lmks_onlypp
@@ -47,8 +48,9 @@ gt_lmk_folder=${NOW}/scans_lmks_onlypp
 # conda activate NFC   # original
 
 # cd /home/wzielonka/projects/MICA                                                                                                      # original
-# python test.py --cfg /home/wzielonka/projects/MICA/configs/${EXPERIMENT}.yml --test_dataset ${BENCHMARK} --checkpoint ${CHECKPOINT}   # original
 cd /home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction                                                                              # Bernardo
+# python test.py --cfg /home/wzielonka/projects/MICA/configs/${EXPERIMENT}.yml --test_dataset ${BENCHMARK} --checkpoint ${CHECKPOINT}   # original
+# python test.py --cfg /home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/${EXPERIMENT}.yml --test_dataset ${BENCHMARK} --checkpoint ${CHECKPOINT}     # Bernardo
 python test_multitask_facerecognition1.py --cfg /home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/configs/${EXPERIMENT}.yml --test_dataset ${BENCHMARK} --checkpoint ${CHECKPOINT}   # Bernardo
 
 # source /home/wzielonka/.virtualenvs/NoW/bin/activate   # original

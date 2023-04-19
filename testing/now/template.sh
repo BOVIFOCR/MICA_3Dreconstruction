@@ -54,7 +54,7 @@ python test.py --cfg /home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/con
 # source /home/wzielonka/.virtualenvs/NoW/bin/activate   # original
 # cd /home/wzielonka/projects/NoW                        # original
 # python compute_error.py ${NOW} ${PREDICTED} true       # original
-cd /home/bjgbiesseck/GitHub/now_evaluation               # Bernardo
+cd /home/bjgbiesseck/GitHub/soubhiksanyal_now_evaluation # Bernardo
 python compute_error.py ${NOW} ${PREDICTED} ${image_set} ${error_out_path} ${method_identifier} ${gt_mesh_folder} ${gt_lmk_folder}    # Bernardo
 
 # Plot diagram
