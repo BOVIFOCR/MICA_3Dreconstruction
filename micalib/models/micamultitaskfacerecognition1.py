@@ -43,14 +43,19 @@ class ArcFace_MLP(torch.nn.Module):
         input_size = self.infer_input_size(self.cfg.model.face_embed)
 
         self.fc1 = nn.Linear(input_size, 512)
+        
+
+        '''
+        self.fc1 = nn.Linear(input_size, 512)
         self.fc2 = nn.Linear(512, 1024)
         self.fc3 = nn.Linear(1024, self.num_classes)
         self.fc4 = nn.Linear(self.num_classes, self.num_classes)
         self.norm_fc1 = nn.BatchNorm1d(512)
         self.norm_fc2 = nn.BatchNorm1d(1024)
         self.norm_fc3 = nn.BatchNorm1d(self.num_classes)
+        '''
 
-        self.weight = nn.Parameter(torch.Tensor(self.num_classes, self.num_classes))
+        self.weight = nn.Parameter(torch.Tensor(self.num_classes, 512))
         # nn.init.constant_(self.weight, 0)
         # nn.init.normal_(self.weight, 0, 0.1)
         # nn.init.xavier_uniform_(self.weight)
@@ -62,10 +67,13 @@ class ArcFace_MLP(torch.nn.Module):
             prob_pred = None
             y_pred = None
         else:
+            x = self.fc1(x)
+            '''
             x = F.relu(self.norm_fc1(self.fc1(x)))
             x = F.relu(self.norm_fc2(self.fc2(x)))
             x = F.relu(self.norm_fc3(self.fc3(x)))
             x = self.fc4(x)
+            '''
             face_embedd = x
             cosine = F.linear(F.normalize(x), F.normalize(self.weight))
             prob_pred = torch.nn.functional.softmax(cosine, dim=1)

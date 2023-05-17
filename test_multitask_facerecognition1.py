@@ -49,8 +49,8 @@ if __name__ == '__main__':
     # checkpoint = 'model_190000.tar'      # LFW: 95.3%,  MLFW: 68.5%,  TALFW: 75.2%
     # model = '20_SINGLE-TASK-ARCFACE-ACC-CONFMAT_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_eval=20perc_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_10000.tar'       # LFW: 98.5%,  MLFW: 81.9%,  TALFW: 70.0%
-    model = '26_SANITY-CHECK_SINGLE-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
-    checkpoint = 'model_20000.tar'       # LFW: 99.5%,  MLFW: 84.0%,  TALFW: 71.9%
+    # model = '26_SANITY-CHECK_SINGLE-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
+    # checkpoint = 'model_20000.tar'       # LFW: 99.5%,  MLFW: 84.0%,  TALFW: 71.9%
     # model = '26_SANITY-CHECK_SINGLE-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=True_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=0.0_lamb2=1.0'
     # checkpoint = 'model_190000.tar'       # LFW: 97.3%,  MLFW: 72.2%,  TALFW: 76.0%
 
@@ -151,6 +151,13 @@ if __name__ == '__main__':
     # checkpoint = 'model_70000.tar'    # LFW: 98.0%,  MLFW: 82.5%,   TALFW: 73.4%
     # model = '27_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=1e-5_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_maskface=True_lamb1=1.0_lamb2=1.0'
     # checkpoint = 'model_60000.tar'    # LFW: 96.6%,  MLFW: 79.3%,   TALFW: 72.8%
+
+    # TRAINED WITH 1 CLASSIFICATION LAYER (ARCFACE-2D)
+    # model = '28_CLASS-LAYER=1_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=arcface_fr-lr=5e-6_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    # checkpoint = 'model_10000.tar'   # LFW: 99.7%    MLFW: 86.7%    TALFW: 76.2%
+    model = '28_CLASS-LAYER=1_MULTI-TASK_train=FRGC,LYHM,Stirling,FACEWAREHOUSE,FLORENCE_pretrainedMICA=False_pretrainedARCFACE=ms1mv3-r100_fr-feat=3dmm_fr-lr=5e-6_loss=arcface_marg1=0.5_scal1=32_wd=1e-5_opt=SGD_sched=CosAnn_reset-opt=True_lamb1=1.0_lamb2=1.0'
+    checkpoint = 'model_50000.tar'   # LFW: 94.0%    MLFW: 61.8%    TALFW: 74.8%
+    
 
     # BERNARDO
     if not '--cfg' in sys.argv:
