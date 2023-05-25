@@ -16,7 +16,7 @@
 
 
 import argparse
-import os
+import os, sys
 import random
 from glob import glob
 from pathlib import Path
@@ -56,24 +56,29 @@ def process_BERNARDO(args, app, image_size=224):
     # image_paths = sorted(glob(args.i + '/*.*'))                                     # original
     image_paths = sorted(glob(args.i + '/*.jpg')) + sorted(glob(args.i + '/*.png'))   # BERNARDO
     for image_path in tqdm(image_paths):
-        name = Path(image_path).stem
-        img = cv2.imread(image_path)
-        # print('demo.py: process_BERNARDO(): image_path=', image_path)
-        bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')
-        if bboxes.shape[0] == 0:
-            continue
-        i = get_center(bboxes, img)
-        bbox = bboxes[i, 0:4]
-        det_score = bboxes[i, 4]
-        kps = None
-        if kpss is not None:
-            kps = kpss[i]
-        face = Face(bbox=bbox, kps=kps, det_score=det_score)
-        blob, aimg = get_arcface_input(face, img)
-        file = str(Path(dst, name))
-        np.save(file, blob)
-        cv2.imwrite(file + '.jpg', face_align.norm_crop(img, landmark=face.kps, image_size=image_size))
-        processes.append(file + '.npy')
+        if args.str_pattern in image_path:
+            args.str_pattern = ''
+            # print(f'process_BERNARDO - image_path: {image_path}')
+            name = Path(image_path).stem
+            img = cv2.imread(image_path)
+            # print('demo.py: process_BERNARDO(): image_path=', image_path)
+            bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')
+            if bboxes.shape[0] == 0:
+                # continue
+                print(f'Error: face not detected in image \'{image_path}\'\n')
+                sys.exit(0)
+            i = get_center(bboxes, img)
+            bbox = bboxes[i, 0:4]
+            det_score = bboxes[i, 4]
+            kps = None
+            if kpss is not None:
+                kps = kpss[i]
+            face = Face(bbox=bbox, kps=kps, det_score=det_score)
+            blob, aimg = get_arcface_input(face, img)
+            file = str(Path(dst, name))
+            np.save(file, blob)
+            cv2.imwrite(file + '.jpg', face_align.norm_crop(img, landmark=face.kps, image_size=image_size))
+            processes.append(file + '.npy')
 
     return processes
 
@@ -134,7 +139,7 @@ def main(cfg, args):
     Path(args.o).mkdir(exist_ok=True, parents=True)
 
     app = FaceAnalysis(name='antelopev2', providers=['CUDAExecutionProvider'])
-    app.prepare(ctx_id=0, det_size=(224, 224))
+    app.prepare(ctx_id=0, det_thresh=0.1, det_size=(224, 224))
 
     with torch.no_grad():
         logger.info(f'Processing has started...')
@@ -167,46 +172,46 @@ def main(cfg, args):
         print('------------------------\n')
 
         for args.i in sub_folders[begin_index:end_index]:
-
             args.a = args.i.replace('input', 'arcface')
             args.o = args.i.replace('input', 'output')
 
-            if not os.path.isdir(args.o):
-                # Bernardo
-                print('input:', args.i)
-                print('arcface:', args.a)
+            # Bernardo
+            print('input:', args.i)
+            print('arcface:', args.a)
 
-                # paths = process(args, app)   # original
-                paths = process_BERNARDO(args, app)   # BERNARDO
+            # paths = process(args, app)   # original
+            paths = process_BERNARDO(args, app)   # BERNARDO
+            # print('paths:', paths)
+            # sys.exit(0)
 
-                for path in tqdm(paths):
-                    print('path:', path)
-                    name = Path(path).stem
-                    images, arcface = to_batch(path)
-                    codedict = mica.encode(images, arcface)
-                    opdict = mica.decode(codedict)
-                    meshes = opdict['pred_canonical_shape_vertices']
-                    code = opdict['pred_shape_code']
-                    lmk = mica.flame.compute_landmarks(meshes)
+            for path in tqdm(paths):
+                print('path:', path)
+                name = Path(path).stem
+                images, arcface = to_batch(path)
+                codedict = mica.encode(images, arcface)
+                opdict = mica.decode(codedict)
+                meshes = opdict['pred_canonical_shape_vertices']
+                code = opdict['pred_shape_code']
+                lmk = mica.flame.compute_landmarks(meshes)
 
-                    mesh = meshes[0]
-                    landmark_51 = lmk[0, 17:]
-                    landmark_7 = landmark_51[[19, 22, 25, 28, 16, 31, 37]]
-                    rendering = mica.render.render_mesh(mesh[None])
-                    image = (rendering[0].cpu().numpy().transpose(1, 2, 0).copy() * 255)[:, :, [2, 1, 0]]
-                    image = np.minimum(np.maximum(image, 0), 255).astype(np.uint8)
+                mesh = meshes[0]
+                landmark_51 = lmk[0, 17:]
+                landmark_7 = landmark_51[[19, 22, 25, 28, 16, 31, 37]]
+                rendering = mica.render.render_mesh(mesh[None])
+                image = (rendering[0].cpu().numpy().transpose(1, 2, 0).copy() * 255)[:, :, [2, 1, 0]]
+                image = np.minimum(np.maximum(image, 0), 255).astype(np.uint8)
 
-                    dst = Path(args.o, name)
-                    dst.mkdir(parents=True, exist_ok=True)
-                    cv2.imwrite(f'{dst}/render.jpg', image)
-                    save_ply(f'{dst}/mesh.ply', verts=mesh.cpu() * 1000.0, faces=faces)  # save in millimeters
-                    save_obj(f'{dst}/mesh.obj', verts=mesh.cpu() * 1000.0, faces=faces)
-                    np.save(f'{dst}/identity', code[0].cpu().numpy())
-                    np.save(f'{dst}/kpt7', landmark_7.cpu().numpy() * 1000.0)
-                    np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
+                dst = Path(args.o, name)
+                dst.mkdir(parents=True, exist_ok=True)
+                cv2.imwrite(f'{dst}/render.jpg', image)
+                save_ply(f'{dst}/mesh.ply', verts=mesh.cpu() * 1000.0, faces=faces)  # save in millimeters
+                save_obj(f'{dst}/mesh.obj', verts=mesh.cpu() * 1000.0, faces=faces)
+                np.save(f'{dst}/identity', code[0].cpu().numpy())
+                np.save(f'{dst}/kpt7', landmark_7.cpu().numpy() * 1000.0)
+                np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
 
-                logger.info(f'Processing finished. Results has been saved in {args.o}')
-                print('------------------------------')
+            logger.info(f'Processing finished. Results has been saved in {args.o}')
+            print('------------------------------')
 
 
 
@@ -216,8 +221,10 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')                                          # BERNARDO
     # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')                                            # BERNARDO
     # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')                    # BERNARDO
-    parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')            # BERNARDO
+    # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')          # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced', type=str, help='Input folder with images')  # BERNARDO
+    # parser.add_argument('-i', default='demo/input/WebFace260M', type=str, help='Input folder with images')                                    # BERNARDO
+    parser.add_argument('-i', default='demo/input/MLFW', type=str, help='Input folder with images')                                             # BERNARDO
 
     parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
     parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
@@ -225,6 +232,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-str_begin', default='', type=str, help='Substring to find and start processing')
     parser.add_argument('-str_end', default='', type=str, help='Substring to find and stop processing')
+    parser.add_argument('-str_pattern', default='', type=str, help='Substring to find and stop processing')
 
     args = parser.parse_args()
     cfg = get_cfg_defaults()
