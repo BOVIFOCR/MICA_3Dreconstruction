@@ -117,7 +117,7 @@ if __name__ == '__main__':
     idx_data_path = '/home/bjgbiesseck/datasets/MS-Celeb-1M/ms1m-retinaface-t1/train.idx'
     lst_data_path = '/home/bjgbiesseck/datasets/MS-Celeb-1M/ms1m-retinaface-t1/train.lst'
 
-    output_path = '/home/bjgbiesseck/datasets/MS-Celeb-1M/ms1m-retinaface-t1/images_BKP'
+    output_path = '/home/bjgbiesseck/datasets/MS-Celeb-1M/ms1m-retinaface-t1/images'
 
     # img_size = [28, 28]
     # img_size = [56, 56]
