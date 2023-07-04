@@ -229,7 +229,9 @@ if __name__ == '__main__':
         # sys.argv += ['-dataset_path', '/home/bjgbiesseck/GitHub/MICA/demo/output/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced']
         # sys.argv += ['-dataset_path', '/experiments/BOVIFOCR_project/datasets/faces/3D_reconstruction_MICA/output/MS-Celeb-1M/ms1m-retinaface-t1/images_1000subj']
         # sys.argv += ['-dataset_path', '/experiments/BOVIFOCR_project/datasets/faces/3D_reconstruction_MICA/output/MS-Celeb-1M/ms1m-retinaface-t1/images_2000subj']
-        sys.argv += ['-dataset_path', '/experiments/BOVIFOCR_project/datasets/faces/3D_reconstruction_MICA/output/MS-Celeb-1M/ms1m-retinaface-t1/images_5000subj']
+        # sys.argv += ['-dataset_path', '/experiments/BOVIFOCR_project/datasets/faces/3D_reconstruction_MICA/output/MS-Celeb-1M/ms1m-retinaface-t1/images_5000subj']
+        sys.argv += ['-dataset_path', '/home/bjgbiesseck/GitHub/BOVIFOCR_MICA_3Dreconstruction/demo/output/IJB-C/IJB/IJB-C/crops']
+
 
     sys.argv += ['-dir_level', '2']
 

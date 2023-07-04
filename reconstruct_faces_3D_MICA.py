@@ -73,11 +73,54 @@ def process_BERNARDO(args, app, image_size=224):
             kps = None
             if kpss is not None:
                 kps = kpss[i]
+
+                # print('kps:', kps)
+                # sys.exit(0)
+                img_copy = img.copy()
+                for kp in kps:
+                    x, y = kp
+                    cv2.circle(img_copy, (int(x), int(y)), 1, (0, 0, 255), 1)
+                file = str(Path(dst, name)) + '_lmk.jpg'
+                # print('Saving image with landmarks:', file)
+                cv2.imwrite(file, img_copy)
+
             face = Face(bbox=bbox, kps=kps, det_score=det_score)
             blob, aimg = get_arcface_input(face, img)
             file = str(Path(dst, name))
             np.save(file, blob)
             cv2.imwrite(file + '.jpg', face_align.norm_crop(img, landmark=face.kps, image_size=image_size))
+            processes.append(file + '.npy')
+
+    return processes
+
+
+# BERNARDO
+def process_BERNARDO_no_face_det(args, app, image_size=224):
+    dst = Path(args.a)
+    dst.mkdir(parents=True, exist_ok=True)
+    processes = []
+    # image_paths = sorted(glob(args.i + '/*.*'))                                     # original
+    image_paths = sorted(glob(args.i + '/*.jpg')) + sorted(glob(args.i + '/*.png'))   # BERNARDO
+    for image_path in tqdm(image_paths):
+        if args.str_pattern in image_path:
+            args.str_pattern = ''
+            # print(f'process_BERNARDO - image_path: {image_path}')
+            name = Path(image_path).stem
+            img = cv2.imread(image_path)
+
+            bbox = [0., 0., img.shape[0], img.shape[1]]
+            kps = np.array(
+                    [[38.2946, 51.6963], [73.5318, 51.5014], [56.0252, 71.7366],
+                    [41.5493, 92.3655], [70.7299, 92.2041]],
+                    dtype=np.float32)
+            det_score = 0.99
+
+            face = Face(bbox=bbox, kps=kps, det_score=det_score)
+            blob, aimg = get_arcface_input(face, img)
+            file = str(Path(dst, name))
+            np.save(file, blob)
+            # cv2.imwrite(file + '.jpg', face_align.norm_crop(img, landmark=face.kps, image_size=image_size))
+            cv2.imwrite(file + '.jpg', aimg)
             processes.append(file + '.npy')
 
     return processes
@@ -179,10 +222,13 @@ def main(cfg, args):
             print('input:', args.i)
             print('arcface:', args.a)
 
-            # paths = process(args, app)   # original
-            paths = process_BERNARDO(args, app)   # BERNARDO
-            # print('paths:', paths)
-            # sys.exit(0)
+            if not args.no_face_det:
+                # paths = process(args, app)   # original
+                paths = process_BERNARDO(args, app)   # BERNARDO
+                # print('paths:', paths)
+                # sys.exit(0)
+            else:
+                paths = process_BERNARDO_no_face_det(args, app)   # BERNARDO
 
             for path in tqdm(paths):
                 print('path:', path)
@@ -224,7 +270,9 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')          # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced', type=str, help='Input folder with images')  # BERNARDO
     # parser.add_argument('-i', default='demo/input/WebFace260M', type=str, help='Input folder with images')                                    # BERNARDO
-    parser.add_argument('-i', default='demo/input/MLFW', type=str, help='Input folder with images')                                             # BERNARDO
+    # parser.add_argument('-i', default='demo/input/MLFW', type=str, help='Input folder with images')                                           # BERNARDO
+    # parser.add_argument('-i', default='demo/input/IJB-C/IJB/IJB-C/crops', type=str, help='Input folder with images')                          # BERNARDO
+    parser.add_argument('-i', default='demo/input/IJB-C/IJB/IJB-C/rec_data_ijbc', type=str, help='Input folder with images')                    # BERNARDO
 
     parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
     parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
@@ -233,6 +281,8 @@ if __name__ == '__main__':
     parser.add_argument('-str_begin', default='', type=str, help='Substring to find and start processing')
     parser.add_argument('-str_end', default='', type=str, help='Substring to find and stop processing')
     parser.add_argument('-str_pattern', default='', type=str, help='Substring to find and stop processing')
+
+    parser.add_argument('-no_face_det', action='store_true', help='')
 
     args = parser.parse_args()
     cfg = get_cfg_defaults()
