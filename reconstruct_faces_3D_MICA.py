@@ -266,13 +266,15 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input', type=str, help='Input folder with images')                                                # original
     # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')                                          # BERNARDO
     # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')                                            # BERNARDO
+    parser.add_argument('-i', default='demo/input/lfw_cfp_agedb', type=str, help='Input folder with images')                                    # BERNARDO
+    # parser.add_argument('-i', default='demo/input/lfw_cfp_agedb/cfp', type=str, help='Input folder with images')                              # BERNARDO
     # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')                    # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')          # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images_reduced', type=str, help='Input folder with images')  # BERNARDO
     # parser.add_argument('-i', default='demo/input/WebFace260M', type=str, help='Input folder with images')                                    # BERNARDO
     # parser.add_argument('-i', default='demo/input/MLFW', type=str, help='Input folder with images')                                           # BERNARDO
     # parser.add_argument('-i', default='demo/input/IJB-C/IJB/IJB-C/crops', type=str, help='Input folder with images')                          # BERNARDO
-    parser.add_argument('-i', default='demo/input/IJB-C/IJB/IJB-C/rec_data_ijbc', type=str, help='Input folder with images')                    # BERNARDO
+    # parser.add_argument('-i', default='demo/input/IJB-C/IJB/IJB-C/rec_data_ijbc', type=str, help='Input folder with images')                  # BERNARDO
 
     parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
     parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
