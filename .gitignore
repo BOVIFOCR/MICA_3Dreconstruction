@@ -78,3 +78,5 @@ demo/output*
 
 # BERNARDO
 */models_weights/*
+
+*.png
