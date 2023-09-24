@@ -20,6 +20,7 @@ import os, sys
 import random
 from glob import glob
 from pathlib import Path
+import time
 
 import cv2
 import numpy as np
@@ -247,7 +248,8 @@ def main(cfg, args):
         print('args.o:', args.o)
         # sys.exit(0)
 
-        for sub_folder in sub_folders[begin_index:end_index]:
+        sub_folders = sub_folders[begin_index:end_index]
+        for s, sub_folder in enumerate(sub_folders):
             if not args.no_face_det:
                 print('\nExtracting face crops...')
                 # paths = process(args, app)   # original
@@ -257,8 +259,12 @@ def main(cfg, args):
             else:
                 print('\nExtracting face crops (no face detection)...')
                 paths = process_BERNARDO_no_face_det(sub_folder, args, app)   # BERNARDO
+            print('')
 
-            for path in tqdm(paths):
+            # for path in tqdm(paths):
+            for p, path in enumerate(paths):
+                start_time = time.time()
+                print(f'sample {p}/{len(paths)-1} - subfolder {s}/{len(sub_folders)-1}')
                 print(f'Reconstructing \'{path}\'')
 
                 images, arcface = to_batch(path)
@@ -291,6 +297,10 @@ def main(cfg, args):
                 np.save(f'{dst}/identity', code[0].cpu().numpy())
                 np.save(f'{dst}/kpt7', landmark_7.cpu().numpy() * 1000.0)
                 np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
+
+                elapsed_time = time.time() - start_time
+                print(f'Elapsed time: {elapsed_time} seconds')
+                print('---------------')
                 # sys.exit(0)
 
             logger.info(f'Processing finished. Results has been saved in {args.o}')
