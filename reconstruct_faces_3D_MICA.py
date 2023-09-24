@@ -191,6 +191,24 @@ def get_parts_indices(sub_folders, divisions):
     return begin_div, end_div
 
 
+def filter_points_in_sphere(pointcloud, point, radius):
+    if torch.is_tensor(pointcloud):
+        squared_distances = torch.sum((pointcloud - point) ** 2, axis=1)
+        indices_inside_sphere = squared_distances <= radius**2
+    elif isinstance(pointcloud, np.ndarray):
+        squared_distances = np.sum((pointcloud - point) ** 2, axis=1)
+        indices_inside_sphere = squared_distances <= radius**2
+
+    points_inside_sphere = pointcloud[indices_inside_sphere]
+    return points_inside_sphere
+
+
+def translate_point_cloud(pointcloud, point):
+    pointcloud = pointcloud - point
+    return pointcloud
+
+
+
 # BERNARDO
 class Tree:
     def walk(self, dir_path: Path):
@@ -317,12 +335,29 @@ def main(cfg, args):
                 Path(path_sample_output_folder).mkdir(exist_ok=True, parents=True)
 
                 dst = path_sample_output_folder
+                pointcloud = verts=mesh.cpu() * 1000.0   # save in millimeters
+                lmk_7_cpu = landmark_7.cpu().numpy() * 1000.0
+                lmk68_cpu = lmk.cpu().numpy() * 1000.0
+
                 cv2.imwrite(f'{dst}/render.jpg', image)
-                save_ply(f'{dst}/mesh.ply', verts=mesh.cpu() * 1000.0, faces=faces)  # save in millimeters
-                save_obj(f'{dst}/mesh.obj', verts=mesh.cpu() * 1000.0, faces=faces)
-                np.save(f'{dst}/identity', code[0].cpu().numpy())
-                np.save(f'{dst}/kpt7', landmark_7.cpu().numpy() * 1000.0)
-                np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
+
+                if not args.save_only_sampled:
+                    # cv2.imwrite(f'{dst}/render.jpg', image)   # original
+                    save_ply(f'{dst}/mesh.ply', pointcloud, faces=faces)  
+                    save_obj(f'{dst}/mesh.obj', pointcloud, faces=faces)
+                    np.save(f'{dst}/identity', code[0].cpu().numpy())
+                    np.save(f'{dst}/kpt7', lmk_7_cpu)
+                    np.save(f'{dst}/kpt68', lmk68_cpu)
+
+                else:
+                    nosetip = lmk68_cpu[0,30,:]
+                    radius = 100   # 10 cm
+                    filtered_pc = filter_points_in_sphere(pointcloud, nosetip, radius)
+                    centralized_pc = translate_point_cloud(filtered_pc, nosetip)
+                    util.write_obj(f'{dst}/mesh_centralized_nosetip_croped_radius={radius}.obj', centralized_pc)
+                    np.save(f'{dst}/mesh_centralized_nosetip_croped_radius={radius}.npy', centralized_pc)
+                    # util.write_obj(f'{dst}/kpt7.obj', lmk_7_cpu)
+                    # util.write_obj(f'{dst}/lmk68.obj', lmk68_cpu[0])
 
                 elapsed_time = time.time() - start_time
                 print(f'Elapsed time: {elapsed_time} seconds')
@@ -367,6 +402,8 @@ if __name__ == '__main__':
 
     parser.add_argument('-no_face_det', action='store_true', help='')
     parser.add_argument('-save_lmk', action='store_true', help='')
+
+    parser.add_argument('-save_only_sampled', action='store_true', help='')
 
     args = parser.parse_args()
     cfg = get_cfg_defaults()
