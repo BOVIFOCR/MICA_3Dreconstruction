@@ -173,6 +173,24 @@ def load_checkpoint(args, mica):
         mica.flameModel.load_state_dict(checkpoint['flameModel'])
 
 
+def get_parts_indices(sub_folders, divisions):
+    begin_div = []
+    end_div = []
+    div_size = int(len(sub_folders) / divisions)
+    remainder = int(len(sub_folders) % divisions)
+
+    for i in range(0, divisions):
+        begin_div.append(i*div_size)
+        end_div.append(i*div_size + div_size)
+    
+    end_div[-1] += remainder
+
+    # print('begin_div:', begin_div)
+    # print('end_div:', end_div)
+    # sys.exit(0)
+    return begin_div, end_div
+
+
 # BERNARDO
 class Tree:
     def walk(self, dir_path: Path):
@@ -192,6 +210,8 @@ class Tree:
 
 
 def main(cfg, args):
+    assert args.part < args.div, f'Error, args.part ({args.part}) >= args.div ({args.div}). args.part must be less than args.div!'
+
     device = 'cuda:0'  # original
     # device = 'cuda:1'    # BERNARDO
 
@@ -210,22 +230,25 @@ def main(cfg, args):
         logger.info(f'Processing has started...')
 
         # LIST ALL DIRS (BERNARDO)
-        print('Loading subfolders paths...')
-        sub_folders = Tree().get_all_sub_folders(args.i)
+        print('\nLoading subfolders paths...')
+        all_sub_folders = Tree().get_all_sub_folders(args.i)
         # for i in range(len(sub_folders)):
         #     print(f'sub_folders[{i}]: {sub_folders[i]}')
-        # print(f'len(sub_folders): {len(sub_folders)}')
+        print(f'len(all_sub_folders): {len(all_sub_folders)}')
         # sys.exit(0)
 
-        begin_index = 0
-        end_index = len(sub_folders)
+        begin_parts, end_parts = get_parts_indices(all_sub_folders, args.div)
+        sub_folders = all_sub_folders[begin_parts[args.part]:end_parts[args.part]]
+
+        begin_index_str = 0
+        end_index_str = len(sub_folders)
 
         if args.str_begin != '':
             print('Searching str_begin \'' + args.str_begin + '\' ...  ')
             for x, sub_folder in enumerate(sub_folders):
                 if args.str_begin in sub_folder:
-                    begin_index = x
-                    print('found at', begin_index)
+                    begin_index_str = x
+                    print('found at', begin_index_str)
                     break
 
         if args.str_end != '':
@@ -233,12 +256,12 @@ def main(cfg, args):
             for x, sub_folder in enumerate(sub_folders):
                 if args.str_end in sub_folder:
                     end_index = x+1
-                    print('found at', begin_index)
+                    print('found at', begin_index_str)
                     break
 
         print('\n------------------------')
-        print('begin_index:', begin_index)
-        print('end_index:', end_index)
+        print('begin_index_str:', begin_index_str)
+        print('end_index_str:', end_index_str)
         print('------------------------\n')
 
         # Bernardo
@@ -248,7 +271,7 @@ def main(cfg, args):
         print('args.o:', args.o)
         # sys.exit(0)
 
-        sub_folders = sub_folders[begin_index:end_index]
+        sub_folders = sub_folders[begin_index_str:end_index_str]
         for s, sub_folder in enumerate(sub_folders):
             if not args.no_face_det:
                 print('\nExtracting face crops...')
@@ -264,7 +287,10 @@ def main(cfg, args):
             # for path in tqdm(paths):
             for p, path in enumerate(paths):
                 start_time = time.time()
-                print(f'sample {p}/{len(paths)-1} - subfolder {s}/{len(sub_folders)-1}')
+                print(f'divs: {args.div}')
+                print(f'begin_parts: {begin_parts}')
+                print(f'  end_parts: {end_parts}')
+                print(f'part {args.part} ({begin_parts[args.part]}:{end_parts[args.part]}  size {end_parts[args.part]-begin_parts[args.part]}) - sample {p}/{len(paths)-1} - subfolder {s}/{len(sub_folders)}')
                 print(f'Reconstructing \'{path}\'')
 
                 images, arcface = to_batch(path)
@@ -335,6 +361,9 @@ if __name__ == '__main__':
     parser.add_argument('-str_begin', default='', type=str, help='Substring to find and start processing')
     parser.add_argument('-str_end', default='', type=str, help='Substring to find and stop processing')
     parser.add_argument('-str_pattern', default='', type=str, help='Substring to find and stop processing')
+
+    parser.add_argument('-div', default=1, type=int, help='How many parts to divide paths list (useful to paralelize process)')
+    parser.add_argument('-part', default=0, type=int, help='Specific part to process (works only if -div > 1)')
 
     parser.add_argument('-no_face_det', action='store_true', help='')
     parser.add_argument('-save_lmk', action='store_true', help='')
