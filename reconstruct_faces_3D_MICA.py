@@ -48,20 +48,28 @@ def deterministic(rank):
     cudnn.benchmark = False
 
 
+def adjust_output_folders_names(args):
+    if args.i.split('/')[-1] != args.o.split('/')[-1]:
+        args.o = os.path.join(args.o, args.i.split('/')[-1])
+    args.o = os.path.join(args.o, 'output')
+
+    if args.a == '':
+        args.a = os.path.join('/'.join(args.o.split('/')[:-1]), 'arcface')
+
+
 # BERNARDO
-def process_BERNARDO(args, app, image_size=224):
+def process_BERNARDO(sub_folder, args, app, image_size=224):
     dst = Path(args.a)
     dst.mkdir(parents=True, exist_ok=True)
+
     processes = []
-    # image_paths = sorted(glob(args.i + '/*.*'))                                     # original
-    image_paths = sorted(glob(args.i + '/*.jpg')) + sorted(glob(args.i + '/*.png'))   # BERNARDO
+    image_paths = sorted(glob(sub_folder + '/*.jpg')) + sorted(glob(sub_folder + '/*.png'))   # BERNARDO
     for image_path in tqdm(image_paths):
         if args.str_pattern in image_path:
             args.str_pattern = ''
             # print(f'process_BERNARDO - image_path: {image_path}')
-            name = Path(image_path).stem
             img = cv2.imread(image_path)
-            # print('demo.py: process_BERNARDO(): image_path=', image_path)
+
             bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')
             if bboxes.shape[0] == 0:
                 # continue
@@ -74,38 +82,44 @@ def process_BERNARDO(args, app, image_size=224):
             if kpss is not None:
                 kps = kpss[i]
 
-                # print('kps:', kps)
-                # sys.exit(0)
+            face = Face(bbox=bbox, kps=kps, det_score=det_score)
+            blob, aimg = get_arcface_input(face, img)
+
+            path_arcface_img = image_path.replace(args.i, args.a)
+            Path(os.path.dirname(path_arcface_img)).mkdir(exist_ok=True, parents=True)
+            path_arcface_img = path_arcface_img.replace('.png', '.jpg').replace('.jpeg', '.jpg')
+            path_arcface_npy = path_arcface_img.replace('.jpg', '.npy')
+            # print('path_arcface_img:', path_arcface_img)
+            # print('path_arcface_npy:', path_arcface_npy)
+
+            cv2.imwrite(path_arcface_img, aimg)
+            np.save(path_arcface_npy, blob)
+            processes.append(path_arcface_npy)
+
+            if args.save_lmk:
                 img_copy = img.copy()
                 for kp in kps:
                     x, y = kp
                     cv2.circle(img_copy, (int(x), int(y)), 1, (0, 0, 255), 1)
-                file = str(Path(dst, name)) + '_lmk.jpg'
-                # print('Saving image with landmarks:', file)
-                cv2.imwrite(file, img_copy)
+                path_face_with_lmk = path_arcface_img.replace('.jpg', '_lmk.jpg')
+                cv2.imwrite(path_face_with_lmk, img_copy)
 
-            face = Face(bbox=bbox, kps=kps, det_score=det_score)
-            blob, aimg = get_arcface_input(face, img)
-            file = str(Path(dst, name))
-            np.save(file, blob)
-            cv2.imwrite(file + '.jpg', face_align.norm_crop(img, landmark=face.kps, image_size=image_size))
-            processes.append(file + '.npy')
+            # sys.exit(0)
 
     return processes
 
 
 # BERNARDO
-def process_BERNARDO_no_face_det(args, app, image_size=224):
+def process_BERNARDO_no_face_det(sub_folder, args, app, image_size=224):
     dst = Path(args.a)
     dst.mkdir(parents=True, exist_ok=True)
+
     processes = []
-    # image_paths = sorted(glob(args.i + '/*.*'))                                     # original
-    image_paths = sorted(glob(args.i + '/*.jpg')) + sorted(glob(args.i + '/*.png'))   # BERNARDO
+    image_paths = sorted(glob(sub_folder + '/*.jpg')) + sorted(glob(sub_folder + '/*.png'))   # BERNARDO
     for image_path in tqdm(image_paths):
         if args.str_pattern in image_path:
             args.str_pattern = ''
-            # print(f'process_BERNARDO - image_path: {image_path}')
-            name = Path(image_path).stem
+            # print(f'process_BERNARDO_no_face_det - image_path: {image_path}')
             img = cv2.imread(image_path)
 
             bbox = [0., 0., img.shape[0], img.shape[1]]
@@ -117,11 +131,18 @@ def process_BERNARDO_no_face_det(args, app, image_size=224):
 
             face = Face(bbox=bbox, kps=kps, det_score=det_score)
             blob, aimg = get_arcface_input(face, img)
-            file = str(Path(dst, name))
-            np.save(file, blob)
-            # cv2.imwrite(file + '.jpg', face_align.norm_crop(img, landmark=face.kps, image_size=image_size))
-            cv2.imwrite(file + '.jpg', aimg)
-            processes.append(file + '.npy')
+
+            path_arcface_img = image_path.replace(args.i, args.a)
+            Path(os.path.dirname(path_arcface_img)).mkdir(exist_ok=True, parents=True)
+            path_arcface_img = path_arcface_img.replace('.png', '.jpg').replace('.jpeg', '.jpg')
+            path_arcface_npy = path_arcface_img.replace('.jpg', '.npy')
+            # print('path_arcface_img:', path_arcface_img)
+            # print('path_arcface_npy:', path_arcface_npy)
+
+            cv2.imwrite(path_arcface_img, aimg)
+            np.save(path_arcface_npy, blob)
+            processes.append(path_arcface_npy)
+            # sys.exit(0)
 
     return processes
 
@@ -188,8 +209,13 @@ def main(cfg, args):
         logger.info(f'Processing has started...')
 
         # LIST ALL DIRS (BERNARDO)
-        print('Loading folders names...')
+        print('Loading subfolders paths...')
         sub_folders = Tree().get_all_sub_folders(args.i)
+        # for i in range(len(sub_folders)):
+        #     print(f'sub_folders[{i}]: {sub_folders[i]}')
+        # print(f'len(sub_folders): {len(sub_folders)}')
+        # sys.exit(0)
+
         begin_index = 0
         end_index = len(sub_folders)
 
@@ -214,25 +240,27 @@ def main(cfg, args):
         print('end_index:', end_index)
         print('------------------------\n')
 
-        for args.i in sub_folders[begin_index:end_index]:
-            args.a = args.i.replace('input', 'arcface')
-            args.o = args.i.replace('input', 'output')
+        # Bernardo
+        adjust_output_folders_names(args)
+        print('args.i:', args.i)
+        print('args.a:', args.a)
+        print('args.o:', args.o)
+        # sys.exit(0)
 
-            # Bernardo
-            print('input:', args.i)
-            print('arcface:', args.a)
-
+        for sub_folder in sub_folders[begin_index:end_index]:
             if not args.no_face_det:
+                print('\nExtracting face crops...')
                 # paths = process(args, app)   # original
-                paths = process_BERNARDO(args, app)   # BERNARDO
+                paths = process_BERNARDO(sub_folder, args, app)   # BERNARDO
                 # print('paths:', paths)
                 # sys.exit(0)
             else:
-                paths = process_BERNARDO_no_face_det(args, app)   # BERNARDO
+                print('\nExtracting face crops (no face detection)...')
+                paths = process_BERNARDO_no_face_det(sub_folder, args, app)   # BERNARDO
 
             for path in tqdm(paths):
-                print('path:', path)
-                name = Path(path).stem
+                print(f'Reconstructing \'{path}\'')
+
                 images, arcface = to_batch(path)
                 codedict = mica.encode(images, arcface)
                 opdict = mica.decode(codedict)
@@ -247,14 +275,23 @@ def main(cfg, args):
                 image = (rendering[0].cpu().numpy().transpose(1, 2, 0).copy() * 255)[:, :, [2, 1, 0]]
                 image = np.minimum(np.maximum(image, 0), 255).astype(np.uint8)
 
-                dst = Path(args.o, name)
-                dst.mkdir(parents=True, exist_ok=True)
+                path_subj_output_folder = os.path.dirname(path.replace(args.a, args.o))
+                # print('path_subj_output_folder:', path_subj_output_folder)
+                Path(path_subj_output_folder).mkdir(exist_ok=True, parents=True)
+
+                sample_file_name = path.split('/')[-1].split('.')[0]
+                path_sample_output_folder = os.path.join(path_subj_output_folder, sample_file_name)
+                # print('path_sample_output_folder:', path_sample_output_folder)
+                Path(path_sample_output_folder).mkdir(exist_ok=True, parents=True)
+
+                dst = path_sample_output_folder
                 cv2.imwrite(f'{dst}/render.jpg', image)
                 save_ply(f'{dst}/mesh.ply', verts=mesh.cpu() * 1000.0, faces=faces)  # save in millimeters
                 save_obj(f'{dst}/mesh.obj', verts=mesh.cpu() * 1000.0, faces=faces)
                 np.save(f'{dst}/identity', code[0].cpu().numpy())
                 np.save(f'{dst}/kpt7', landmark_7.cpu().numpy() * 1000.0)
                 np.save(f'{dst}/kpt68', lmk.cpu().numpy() * 1000.0)
+                # sys.exit(0)
 
             logger.info(f'Processing finished. Results has been saved in {args.o}')
             print('------------------------------')
@@ -266,7 +303,7 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input', type=str, help='Input folder with images')                                                # original
     # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')                                          # BERNARDO
     # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')                                            # BERNARDO
-    parser.add_argument('-i', default='demo/input/lfw_cfp_agedb', type=str, help='Input folder with images')                                    # BERNARDO
+    # parser.add_argument('-i', default='demo/input/lfw_cfp_agedb', type=str, help='Input folder with images')                                    # BERNARDO
     # parser.add_argument('-i', default='demo/input/lfw_cfp_agedb/cfp', type=str, help='Input folder with images')                              # BERNARDO
     # parser.add_argument('-i', default='demo/input/CelebA/Img/img_align_celeba', type=str, help='Input folder with images')                    # BERNARDO
     # parser.add_argument('-i', default='demo/input/MS-Celeb-1M/ms1m-retinaface-t1/images', type=str, help='Input folder with images')          # BERNARDO
@@ -275,9 +312,14 @@ if __name__ == '__main__':
     # parser.add_argument('-i', default='demo/input/MLFW', type=str, help='Input folder with images')                                           # BERNARDO
     # parser.add_argument('-i', default='demo/input/IJB-C/IJB/IJB-C/crops', type=str, help='Input folder with images')                          # BERNARDO
     # parser.add_argument('-i', default='demo/input/IJB-C/IJB/IJB-C/rec_data_ijbc', type=str, help='Input folder with images')                  # BERNARDO
+    parser.add_argument('-i', default='/datasets2/frcsyn_wacv2024/datasets/synthetic/GANDiffFace_crops', type=str, help='Input folder with images')
 
-    parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
-    parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
+    # parser.add_argument('-o', default='demo/output', type=str, help='Output folder')
+    parser.add_argument('-o', default='/datasets2/frcsyn_wacv2024/datasets/3D_reconstruction_MICA/synthetic/GANDiffFace_crops', type=str, help='Output folder')
+    
+    # parser.add_argument('-a', default='demo/arcface', type=str, help='Processed images for MICA input')
+    parser.add_argument('-a', default='', type=str, help='Processed images for MICA input')
+    
     parser.add_argument('-m', default='data/pretrained/mica.tar', type=str, help='Pretrained model path')
 
     parser.add_argument('-str_begin', default='', type=str, help='Substring to find and start processing')
@@ -285,6 +327,7 @@ if __name__ == '__main__':
     parser.add_argument('-str_pattern', default='', type=str, help='Substring to find and stop processing')
 
     parser.add_argument('-no_face_det', action='store_true', help='')
+    parser.add_argument('-save_lmk', action='store_true', help='')
 
     args = parser.parse_args()
     cfg = get_cfg_defaults()
