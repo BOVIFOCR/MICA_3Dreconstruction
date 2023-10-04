@@ -273,7 +273,7 @@ def main(cfg, args):
             print('Searching str_end \'' + args.str_end + '\' ...  ')
             for x, sub_folder in enumerate(sub_folders):
                 if args.str_end in sub_folder:
-                    end_index = x+1
+                    end_index_str = x+1
                     print('found at', begin_index_str)
                     break
 
