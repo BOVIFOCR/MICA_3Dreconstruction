@@ -208,6 +208,27 @@ def translate_point_cloud(pointcloud, point):
     return pointcloud
 
 
+def get_all_paths_from_file(file_path, pattern=''):
+    with open(file_path, 'r') as file:
+        all_lines = [line.strip() for line in file.readlines()]
+        valid_lines = []
+        for i, line in enumerate(all_lines):
+            if pattern in line:
+                valid_lines.append(line)
+        valid_lines.sort()
+        return valid_lines
+
+
+def get_all_subfolders_from_file_paths(file_path, pattern=''):
+    file_paths = get_all_paths_from_file(file_path, pattern)
+    subfolders = [None] * len(file_paths)
+    for i, file_path in enumerate(file_paths):
+        subfolder = '/'.join(file_path.split('/')[:-1])
+        subfolders[i] = subfolder
+    subfolders = list(set(subfolders))
+    subfolders.sort()
+    return subfolders
+
 
 # BERNARDO
 class Tree:
@@ -247,12 +268,15 @@ def main(cfg, args):
     with torch.no_grad():
         logger.info(f'Processing has started...')
 
-        # LIST ALL DIRS (BERNARDO)
-        print('\nLoading subfolders paths...')
-        all_sub_folders = Tree().get_all_sub_folders(args.i)
-        # for i in range(len(sub_folders)):
-        #     print(f'sub_folders[{i}]: {sub_folders[i]}')
-        print(f'len(all_sub_folders): {len(all_sub_folders)}')
+        if args.file_list != '' and os.path.isfile(args.file_list):
+            print(f'\nLoading subfolders with pattern \'{args.str_pattern}\' from file \'{args.file_list}\' ...')
+            all_sub_folders = get_all_subfolders_from_file_paths(args.file_list, args.str_pattern)
+        else:
+            print('\nLoading subfolders paths...')
+            all_sub_folders = Tree().get_all_sub_folders(args.i)
+        # for i in range(len(all_sub_folders)):
+        #     print(f'all_sub_folders[{i}]: {all_sub_folders[i]}')
+        # print(f'len(all_sub_folders): {len(all_sub_folders)}')
         # sys.exit(0)
 
         begin_parts, end_parts = get_parts_indices(all_sub_folders, args.div)
@@ -371,6 +395,8 @@ def main(cfg, args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MICA - Towards Metrical Reconstruction of Human Faces')
+    parser.add_argument('-file_list', type=str, default='', help='')
+    
     # parser.add_argument('-i', default='demo/input', type=str, help='Input folder with images')                                                # original
     # parser.add_argument('-i', default='demo/input_TESTE', type=str, help='Input folder with images')                                          # BERNARDO
     # parser.add_argument('-i', default='demo/input/lfw', type=str, help='Input folder with images')                                            # BERNARDO
