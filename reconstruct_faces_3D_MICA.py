@@ -58,8 +58,13 @@ def adjust_output_folders_names(args):
         args.a = os.path.join('/'.join(args.o.split('/')[:-1]), 'arcface')
 
 
+def add_line_to_text_file(path_file, line):
+    with open(path_file, 'a') as file:
+        file.write(line + '\n')
+
+
 # BERNARDO
-def process_BERNARDO(sub_folder, args, app, image_size=224):
+def process_BERNARDO(sub_folder, args, app, ignore_face_not_det, path_file_faces_not_det, image_size=224):
     dst = Path(args.a)
     dst.mkdir(parents=True, exist_ok=True)
 
@@ -73,9 +78,12 @@ def process_BERNARDO(sub_folder, args, app, image_size=224):
 
             bboxes, kpss = app.det_model.detect(img, max_num=0, metric='default')
             if bboxes.shape[0] == 0:
-                # continue
-                print(f'Error: face not detected in image \'{image_path}\'\n')
-                sys.exit(0)
+                if ignore_face_not_det:
+                    add_line_to_text_file(path_file_faces_not_det, image_path)
+                    continue
+                else:
+                    print(f'Error: face not detected in image \'{image_path}\'\n')
+                    sys.exit(0)
             i = get_center(bboxes, img)
             bbox = bboxes[i, 0:4]
             det_score = bboxes[i, 4]
@@ -313,12 +321,16 @@ def main(cfg, args):
         print('args.o:', args.o)
         # sys.exit(0)
 
+        name_file_faces_not_det = 'files_faces_not_detected.txt'
+        path_file_faces_not_det = os.path.join(os.path.dirname(args.o), name_file_faces_not_det)
+        print('path_file_faces_not_det:', path_file_faces_not_det)
+
         sub_folders = sub_folders[begin_index_str:end_index_str]
         for s, sub_folder in enumerate(sub_folders):
-            if not args.no_face_det:
+            if not args.dont_detect_face:
                 print('\nExtracting face crops...')
                 # paths = process(args, app)   # original
-                paths = process_BERNARDO(sub_folder, args, app)   # BERNARDO
+                paths = process_BERNARDO(sub_folder, args, app, args.ignore_face_not_det, path_file_faces_not_det)   # BERNARDO
                 # print('paths:', paths)
                 # sys.exit(0)
             else:
@@ -426,7 +438,8 @@ if __name__ == '__main__':
     parser.add_argument('-div', default=1, type=int, help='How many parts to divide paths list (useful to paralelize process)')
     parser.add_argument('-part', default=0, type=int, help='Specific part to process (works only if -div > 1)')
 
-    parser.add_argument('-no_face_det', action='store_true', help='')
+    parser.add_argument('-dont_detect_face', action='store_true', help='')
+    parser.add_argument('-ignore_face_not_det', action='store_true', help='')
     parser.add_argument('-save_lmk', action='store_true', help='')
 
     parser.add_argument('-save_only_sampled', action='store_true', help='')
