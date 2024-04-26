@@ -39,29 +39,44 @@ def flat_array_remove_invalid_values(array, invalid_value=-1):
 
 def compute_metrics_distances_subject(dist_data):
     metrics = {}
+    metrics['all_distances'] = dist_data
     metrics['mean'] = np.mean(dist_data)
     metrics['std'] = np.std(dist_data)
     return metrics
 
 
 def merge_metrics_dists(metrics_dist_subj):
+    num_all_distances = 0
+    for i, key in enumerate(metrics_dist_subj.keys()):
+        num_all_distances += metrics_dist_subj[key]['all_distances'].shape[0]
+
+    idx_begin_all_dist, idx_end_all_dist = 0, 0
+    all_distances = np.zeros((num_all_distances,), dtype=np.float32)
     means = np.zeros((len(metrics_dist_subj),), dtype=np.float32)
     stds = np.zeros((len(metrics_dist_subj),), dtype=np.float32)
     for i, key in enumerate(metrics_dist_subj.keys()):
+        idx_end_all_dist = idx_begin_all_dist + metrics_dist_subj[key]['all_distances'].shape[0]
+        all_distances[idx_begin_all_dist:idx_end_all_dist] = metrics_dist_subj[key]['all_distances']
+        idx_begin_all_dist = idx_end_all_dist
+        
         means[i] = metrics_dist_subj[key]['mean']
         stds[i] = metrics_dist_subj[key]['std']
-    return means, stds 
+    return all_distances, means, stds
 
 
-def save_histograms(means, stds, filename, title):
+def save_histograms(all_distances, means, stds, filename, title):
+    hist_all_dists, bin_all_dists_edges = np.histogram(all_distances, bins=20, density=True)
+    bin_width = bin_all_dists_edges[1] - bin_all_dists_edges[0]
+    plt.bar(bin_all_dists_edges[:-1], hist_all_dists/np.sum(hist_all_dists), width=bin_width, edgecolor='black', alpha=0.7, label='All dists')
+
     hist_means, bin_means_edges = np.histogram(means, bins=20, density=True)
     bin_width = bin_means_edges[1] - bin_means_edges[0]
-    plt.bar(bin_means_edges[:-1], hist_means/np.sum(hist_means), width=bin_width, edgecolor='black', alpha=0.7, label='Means')
+    plt.bar(bin_means_edges[:-1], hist_means/np.sum(hist_means), width=bin_width, edgecolor='black', alpha=0.7, label='Means of dists')
 
-    hist_stds, bin_stds_edges = np.histogram(stds, bins=20, density=True)
-    bin_width = bin_stds_edges[1] - bin_stds_edges[0]
-    plt.bar(bin_stds_edges[:-1], hist_stds/np.sum(hist_stds), width=bin_width, edgecolor='black', alpha=0.7, label='Stds')
-    
+    # hist_stds, bin_stds_edges = np.histogram(stds, bins=20, density=True)
+    # bin_width = bin_stds_edges[1] - bin_stds_edges[0]
+    # plt.bar(bin_stds_edges[:-1], hist_stds/np.sum(hist_stds), width=bin_width, edgecolor='black', alpha=0.7, label='Stds')
+
 
     # Plot histograms
     # plt.hist(means, bins=20, density=False, stacked=True, alpha=0.5, label='Means')
@@ -74,7 +89,7 @@ def save_histograms(means, stds, filename, title):
     plt.legend()
 
     # plt.xlim([0, 1])
-    plt.xlim([0, 10])
+    plt.xlim([0, 20])
     plt.ylim([0, 0.5])
 
     # Save the plot as PNG
@@ -102,7 +117,7 @@ def main(args):
         subj_start_time = time.time()
         
         subj_name = os.path.basename(subj_path)
-        print(f'{idx_subj}/{len(subjects_paths)} - Loading subject {subj_name}', end='\r')
+        print(f'{idx_subj}/{len(subjects_paths)} - Loading subject \'{subj_name}\'', end='\r')
 
         file_pattern = os.path.join(subj_path, '*' + args.file_ext)
         dist_file_path = glob.glob(file_pattern)
@@ -123,7 +138,7 @@ def main(args):
     print('')
     
     print('Merging metrics...')
-    all_means_dist, all_stds_dist = merge_metrics_dists(metrics_dist_subj)
+    all_distances, all_means_dist, all_stds_dist = merge_metrics_dists(metrics_dist_subj)
     # print('all_means_dist:', all_means_dist)
     # print('all_means_dist.shape:', all_means_dist.shape)
 
@@ -131,7 +146,7 @@ def main(args):
     chart_file_name = 'histograms_distances_' + args.metric + '.png'
     chart_file_path = os.path.join(output_path, chart_file_name)
     print(f'Saving histograms: \'{chart_file_path}\'')
-    save_histograms(all_means_dist, all_stds_dist, chart_file_path, title)
+    save_histograms(all_distances, all_means_dist, all_stds_dist, chart_file_path, title)
 
     print('\nFinished!')
 
@@ -143,7 +158,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-path', type=str, default='/datasets2/1st_frcsyn_wacv2024/datasets/3D_reconstruction_MICA/real/1_CASIA-WebFace/imgs_crops_112x112/distances_cosine_3dmm')
     
-    parser.add_argument('--metric', default='cosine_3dmm', type=str, help='Options: chamfer, cosine_3dmm, cosine_2d')
+    parser.add_argument('--metric', default='euclidean_3dmm', type=str, help='Options: chamfer, cosine_3dmm, cosine_2d')
     parser.add_argument('--file_ext', default='.npy', type=str, help='.npy')
     parser.add_argument('--dataset_name', default='CASIA-WebFace', type=str, help='')
 
