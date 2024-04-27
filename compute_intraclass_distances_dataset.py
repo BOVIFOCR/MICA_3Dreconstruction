@@ -61,7 +61,11 @@ def compute_chamfer_distance(points1, points2):
 
 
 def compute_cosine_distance(array1, array2, normalize=True):
-    # print('array1.shape:', array1.shape)
+    if array1.shape[0] == 1:
+        array1 = array1[0]
+    if array2.shape[0] == 1:
+        array2 = array2[0]
+    
     if normalize == True:
         array1 = torch.nn.functional.normalize(array1, dim=0)
         array2 = torch.nn.functional.normalize(array2, dim=0)
@@ -79,6 +83,18 @@ def compute_euclidean_distance(array1, array2, normalize=True):
         array2 = torch.nn.functional.normalize(array2, dim=0)
     eucl_dist = torch.norm(array1 - array2)
     return eucl_dist
+
+
+def find_files_by_extension(folder_path, extension):
+    matching_files = []
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            # Check if the file ends with the specified extension
+            if file.endswith(extension):
+                # If it does, add the full path to the list
+                matching_files.append(os.path.join(root, file))
+    return sorted(matching_files)
+
 
 
 def main(args):
@@ -104,7 +120,6 @@ def main(args):
     # sub_folders = subjects_paths[begin_parts[args.part]:end_parts[args.part]]
 
     print('Computing distances...\n')
-    chamfer_distances = []
     for idx_subj, subj_path in enumerate(subjects_paths):
         if idx_subj >= idx_subj_begin and idx_subj < idx_subj_end:
             subj_start_time = time.time()
@@ -119,28 +134,23 @@ def main(args):
                 if os.path.isfile(output_distances_path):
                     print(f'Skipping subject {idx_subj-idx_subj_begin}/{num_subjs_part} - \'{subj}\', distances file already exists: \'{output_distances_path}\'')
                     continue
+            
+            print(f'{idx_subj}/{len(subjects_paths)} - Searching subject samples in \'{subj_path}\'')
+            samples_paths = find_files_by_extension(subj_path, args.file_ext)
 
-            # subj_path = os.path.join(dataset_path, subj)
-            print(f'subj {idx_subj-idx_subj_begin}/{num_subjs_part}: {subj} - Searching samples subfolders...')
-            samples_folders = [folder for folder in os.listdir(subj_path) if os.path.isdir(os.path.join(subj_path, folder))]
-            # print('samples_folders:', samples_folders)
+            loaded_samples = [None] * len(samples_paths)
+            for idx_sf, sample_path in enumerate(samples_paths):
+                print(f'Loading samples - {idx_sf}/{len(samples_paths)}...', end='\r')
+                data = load_sample(sample_path)
+                loaded_samples[idx_sf] = data
+            print('')
+            # print('loaded_samples:', loaded_samples)
             # sys.exit(0)
 
-            loaded_samples = [None] * len(samples_folders)
-            for idx_sf, sample_folder in enumerate(samples_folders):
-                sample_pattern = os.path.join(subj_path, sample_folder, '*' + args.file_ext)
-                sample_path = glob.glob(sample_pattern)
-                assert len(sample_path) > 0, f'Error, file not found: \'{sample_pattern}\''
-                sample_path = sample_path[0]
-                print(f'Loading samples - {idx_sf}/{len(samples_folders)}...', end='\r')
-                pc_data = load_sample(sample_path)
-                loaded_samples[idx_sf] = pc_data
-            print('')
-
-            dist_matrix = -np.ones((len(samples_folders),len(samples_folders)), dtype=np.float32)
+            dist_matrix = -np.ones((len(loaded_samples),len(loaded_samples)), dtype=np.float32)
             for i in range(len(loaded_samples)):
                 for j in range(i+1, len(loaded_samples)):
-                    print(f'    Computing intra-class \'{args.metric}\' distances - i: {i}/{len(loaded_samples)}  j: {j}/{len(samples_folders)}', end='\r')
+                    print(f'    Computing intra-class \'{args.metric}\' distances - i: {i}/{len(loaded_samples)}  j: {j}/{len(loaded_samples)}', end='\r')
                     sample1 = loaded_samples[i]
                     sample2 = loaded_samples[j]
 
@@ -152,22 +162,18 @@ def main(args):
                         dist = compute_euclidean_distance(sample1, sample2, normalize=False)
 
                     # chamfer_distances.append(chamfer_dist)
+                    # print('dist:', dist)
                     dist_matrix[i,j] = dist
             print('')
 
-            print(f'Saving distances file: \'{output_distances_path}\'')
+            print(f'    Saving distances file: \'{output_distances_path}\'')
             np.save(output_distances_path, dist_matrix)
 
             subj_elapsed_time = (time.time() - subj_start_time)
             print('    subj_elapsed_time: %.2f sec' % (subj_elapsed_time))
             print('---------------------')
 
-    plt.hist(chamfer_distances, bins=20, alpha=0.7, color='blue')
-    plt.title('Distribution of Chamfer Distances')
-    plt.xlabel('Chamfer Distance')
-    plt.ylabel('Frequency')
-    plt.savefig('chamfer_distances_histogram.png')
-    plt.show()
+    print('\nFinished!')
 
 
 if __name__ == "__main__":
@@ -181,7 +187,7 @@ if __name__ == "__main__":
     parser.add_argument('--divs', default=1, type=int, help='How many parts to divide paths list (useful to paralelize process)')
     parser.add_argument('--part', default=0, type=int, help='Specific part to process (works only if -div > 1)')
 
-    parser.add_argument('--metric', default='chamfer', type=str, help='Options: chamfer, cosine_3dmm, euclidean_3dmm, cosine_2d')
+    parser.add_argument('--metric', default='euclidean_3dmm', type=str, help='Options: chamfer, cosine_3dmm, euclidean_3dmm, cosine_2d')
     parser.add_argument('--file_ext', default='.ply', type=str, help='.ply, .obj, .npy')
 
     parser.add_argument('--dont_replace_existing_files', action='store_true', help='')
