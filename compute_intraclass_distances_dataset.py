@@ -71,9 +71,7 @@ def compute_cosine_distance(array1, array2, normalize=True):
         array2 = torch.nn.functional.normalize(array2, dim=0)
     cos_sim = nn.CosineSimilarity(dim=0, eps=1e-6)(array1, array2)
     cos_dist = 1.0 - cos_sim
-    # print('\ncos_sim:', cos_sim)
-    # sys.exit(0)
-    return cos_sim
+    return cos_dist
 
 
 def compute_euclidean_distance(array1, array2, normalize=True):

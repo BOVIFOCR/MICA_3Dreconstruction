@@ -88,8 +88,8 @@ def save_histograms(all_distances, means, stds, filename, title):
     plt.ylabel('Frequency')
     plt.legend()
 
-    # plt.xlim([0, 1])
-    plt.xlim([0, 20])
+    plt.xlim([0, 1])
+    # plt.xlim([0, 20])
     plt.ylim([0, 0.5])
 
     # Save the plot as PNG
