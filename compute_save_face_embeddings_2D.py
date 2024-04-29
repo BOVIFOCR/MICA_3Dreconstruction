@@ -125,20 +125,37 @@ def main(args):
             samples_file_name = sorted([sample for sample in os.listdir(subj_path) if os.path.isfile(os.path.join(subj_path, sample)) and sample.endswith(args.file_ext)])
             samples_paths = [os.path.join(subj_path, sample) for sample in samples_file_name]
 
+            embedds_subj = np.zeros((len(samples_paths),1,512), dtype=np.float32)
             for idx_sample, sample_path in enumerate(samples_paths):
-                print(f'    Computing and saving 2D embeddings - {idx_sample}/{len(samples_paths)}', end='\r')
-                img_tensor = load_sample(sample_path)
-                img_tensor = img_tensor.cuda()[None]
-                embedd_normalized = F.normalize(arcface(img_tensor))
-                embedd_normalized = embedd_normalized.cpu().detach().numpy()
-
                 sample_name = os.path.basename(sample_path).split('.')[0]
                 embedd_file_name = f'{sample_name}_embedding_r100_arcface.npy'
                 embedd_file_path = os.path.join(output_subj_path, embedd_file_name)
-                np.save(embedd_file_path, embedd_normalized)
+
+                if not os.path.isfile(embedd_file_path):
+                    print(f'    Computing and saving 2D embeddings - {idx_sample}/{len(samples_paths)}', end='\r')
+                    img_tensor = load_sample(sample_path)
+                    img_tensor = img_tensor.cuda()[None]
+                    embedd_normalized = F.normalize(arcface(img_tensor))
+                    embedd_normalized = embedd_normalized.cpu().detach().numpy()
+                    embedds_subj[idx_sample] = embedd_normalized
+                else:
+                    print(f'    Loading 2D embeddings - {idx_sample}/{len(samples_paths)}', end='\r')
+                    embedd_normalized = np.load(embedd_file_path)
+                    embedds_subj[idx_sample] = embedd_normalized
+
+                if args.dont_replace_existing_files:
+                    np.save(embedd_file_path, embedd_normalized)
                 # print('\nembedd.shape:', embedd.shape)
                 # sys.exit(0)
             print('')
+
+            mean_embedd_subj = embedds_subj.mean(axis=0)
+            # std_embedd_subj = embedds_subj.std(axis=0)
+            mean_embedd_file_name = f'{subj}_mean_embedding_r100_arcface.npy'
+            mean_embedd_file_path = os.path.join(output_subj_path, mean_embedd_file_name)
+            print(f'    Saving mean embedding: \'{mean_embedd_file_path}\'')
+            np.save(mean_embedd_file_path, mean_embedd_subj)
+            # sys.exit(0)
 
             subj_elapsed_time = (time.time() - subj_start_time)
             print('    subj_elapsed_time: %.2f sec' % (subj_elapsed_time))
