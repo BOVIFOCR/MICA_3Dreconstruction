@@ -6,6 +6,7 @@ import random
 import socket
 import time
 import glob
+import pickle
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,12 +27,19 @@ import matplotlib.pyplot as plt
 def load_distances(file_path):
     if file_path.endswith('.npy'):
         dists = np.load(file_path)
+    elif file_path.endswith('.pkl'):
+        with open(file_path, 'rb') as file:
+            dists = pickle.load(file)
     else:
         raise ValueError(f"Unsupported file format \'{file_path}\'")
     return dists
     
 
 def flat_array_remove_invalid_values(array, invalid_value=-1):
+    if isinstance(array, dict):
+        dict_data = [array[key] for key in array.keys()]
+        array = np.array(dict_data)
+
     flat_array = array.flatten()
     valid_values = flat_array[flat_array != invalid_value]
     return valid_values
@@ -111,7 +119,8 @@ def main(args):
     print(f'Found {len(subjects_paths)} subjects!')
     # sys.exit(0)
 
-    metrics_dist_subj = {}
+    metrics_dist_between_samples_subj = {}
+    metrics_dist_to_mean_subj = {}
     print('Loading distances...\n')
     for idx_subj, subj_path in enumerate(subjects_paths):
         subj_start_time = time.time()
@@ -119,34 +128,58 @@ def main(args):
         subj_name = os.path.basename(subj_path)
         print(f'{idx_subj}/{len(subjects_paths)} - Loading subject \'{subj_name}\'', end='\r')
 
-        file_pattern = os.path.join(subj_path, '*' + args.file_ext)
-        dist_file_path = glob.glob(file_pattern)
-        if len(dist_file_path) > 0:
-            # assert len(dist_file_path) > 0, f'Error, file not found: \'{file_pattern}\''
-            dist_file_path = dist_file_path[0]
-            dist_data = load_distances(dist_file_path)
-            # print('dist_data.shape:', dist_data.shape)
+        # Distances between samples
+        file_pattern_dist_between_samples = os.path.join(subj_path, '*' + args.file_ext)
+        dist_between_samples_file_path = glob.glob(file_pattern_dist_between_samples)
+        if len(dist_between_samples_file_path) > 0:
+            # assert len(dist_between_samples_file_path) > 0, f'Error, file not found: \'{file_pattern}\''
+            dist_between_samples_file_path = dist_between_samples_file_path[0]
+            dist_between_samples_data = load_distances(dist_between_samples_file_path)
+            # print('dist_between_samples_data.shape:', dist_between_samples_data.shape)
             # sys.exit(0)
 
-            dist_data = flat_array_remove_invalid_values(dist_data, invalid_value=-1)
-            # print('dist_data.shape:', dist_data.shape)
+            dist_between_samples_data = flat_array_remove_invalid_values(dist_between_samples_data, invalid_value=-1)
+            # print('dist_between_samples_data.shape:', dist_between_samples_data.shape)
             # sys.exit(0)
 
-            metrics_dist_subj[subj_name] = compute_metrics_distances_subject(dist_data)
-            # print('metrics_dist_subj:', metrics_dist_subj)
+            metrics_dist_between_samples_subj[subj_name] = compute_metrics_distances_subject(dist_between_samples_data)
+            # print('metrics_dist_between_samples_subj:', metrics_dist_between_samples_subj)
             # sys.exit(0)
+
+        # Distances to mean embedding
+        file_pattern_dist_to_mean_subj = os.path.join(subj_path, '*.pkl')
+        dist_to_mean_subj_file_path = glob.glob(file_pattern_dist_to_mean_subj)
+        if len(dist_to_mean_subj_file_path) > 0:
+            dist_to_mean_subj_file_path = dist_to_mean_subj_file_path[0]
+            dist_to_mean_subj_data = load_distances(dist_to_mean_subj_file_path)
+            # print('dist_to_mean_subj_data:', dist_to_mean_subj_data)
+            # sys.exit(0)
+
+            dist_to_mean_subj_data = flat_array_remove_invalid_values(dist_to_mean_subj_data, invalid_value=-1)
+            # print('dist_to_mean_subj_data:', dist_to_mean_subj_data)
+            # sys.exit(0)
+
+            metrics_dist_to_mean_subj[subj_name] = compute_metrics_distances_subject(dist_to_mean_subj_data)
+        
     print('')
     
     print('Merging metrics...')
-    all_distances, all_means_dist, all_stds_dist = merge_metrics_dists(metrics_dist_subj)
+    all_dist_between_samples, all_means_dist_between_samples, all_stds_dist_between_samples = merge_metrics_dists(metrics_dist_between_samples_subj)
+    all_dist_to_mean_embedd, all_means_dist_to_mean_embedd, all_stds_dist_to_mean_embedd = merge_metrics_dists(metrics_dist_to_mean_subj)
     # print('all_means_dist:', all_means_dist)
     # print('all_means_dist.shape:', all_means_dist.shape)
 
-    title = f'dataset \'{args.dataset_name}\' - {len(metrics_dist_subj)} subjects - {args.metric}'
-    chart_file_name = 'histograms_distances_' + args.metric + '.png'
+    title = f'dataset \'{args.dataset_name}\' - {len(metrics_dist_between_samples_subj)} subjects - {args.metric}'
+    chart_file_name = 'histograms_distances_between_samples_' + args.metric + '.png'
     chart_file_path = os.path.join(output_path, chart_file_name)
     print(f'Saving histograms: \'{chart_file_path}\'')
-    save_histograms(all_distances, all_means_dist, all_stds_dist, chart_file_path, title)
+    save_histograms(all_dist_between_samples, all_means_dist_between_samples, all_stds_dist_between_samples, chart_file_path, title)
+
+    title = f'dataset \'{args.dataset_name}\' - {len(metrics_dist_to_mean_subj)} subjects - {args.metric}'
+    chart_file_name = 'histograms_distances_to_mean_embedd_' + args.metric + '.png'
+    chart_file_path = os.path.join(output_path, chart_file_name)
+    print(f'Saving histograms: \'{chart_file_path}\'')
+    save_histograms(all_dist_to_mean_embedd, all_means_dist_to_mean_embedd, all_stds_dist_to_mean_embedd, chart_file_path, title)
 
     print('\nFinished!')
 

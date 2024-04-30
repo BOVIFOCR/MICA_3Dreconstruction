@@ -5,6 +5,7 @@ import argparse
 import random
 import socket
 import time
+import pickle
 
 import numpy as np
 import torch
@@ -65,6 +66,11 @@ def compute_cosine_distance(array1, array2, normalize=True):
         array1 = array1[0]
     if array2.shape[0] == 1:
         array2 = array2[0]
+
+    if isinstance(array1, np.ndarray):
+         array1 = torch.from_numpy(array1)
+    if isinstance(array2, np.ndarray):
+         array2 = torch.from_numpy(array2)
     
     if normalize == True:
         array1 = torch.nn.functional.normalize(array1, dim=0)
@@ -83,14 +89,15 @@ def compute_euclidean_distance(array1, array2, normalize=True):
     return eucl_dist
 
 
-def find_files_by_extension(folder_path, extension):
+def find_files_by_extension(folder_path, extension, ignore_file_with=''):
     matching_files = []
     for root, _, files in os.walk(folder_path):
         for file in files:
             # Check if the file ends with the specified extension
             if file.endswith(extension):
-                # If it does, add the full path to the list
-                matching_files.append(os.path.join(root, file))
+                file_path = os.path.join(root, file)
+                if ignore_file_with == '' or not ignore_file_with in file_path:
+                    matching_files.append(file_path)
     return sorted(matching_files)
 
 
@@ -126,15 +133,34 @@ def main(args):
             output_subj_path = os.path.join(output_path, subj)
             os.makedirs(output_subj_path, exist_ok=True)
 
+            skip_distances_between_samples = False
             distances_file_name = 'distances_'+args.metric+'.npy'
             output_distances_path = os.path.join(output_subj_path, distances_file_name)
+
+            skip_distances_to_mean_embedd = False
+            distances_to_mean_file_name = 'distances_'+args.metric+'_to_mean_class_embedd.pkl'
+            output_distances_to_mean_path = os.path.join(output_subj_path, distances_to_mean_file_name)
+
             if args.dont_replace_existing_files:
                 if os.path.isfile(output_distances_path):
+                    skip_distances_between_samples = True
+                if os.path.isfile(output_distances_to_mean_path):
+                    skip_distances_to_mean_embedd = True
+                if skip_distances_between_samples and skip_distances_to_mean_embedd:
                     print(f'Skipping subject {idx_subj-idx_subj_begin}/{num_subjs_part} - \'{subj}\', distances file already exists: \'{output_distances_path}\'')
                     continue
+
+            # if args.dont_replace_existing_files:
+            #     if os.path.isfile(output_distances_path) and os.path.isfile(output_distances_to_mean_path):
+            #         print(f'Skipping subject {idx_subj-idx_subj_begin}/{num_subjs_part} - \'{subj}\', distances file already exists: \'{output_distances_path}\'')
+            #         continue
             
             print(f'{idx_subj}/{len(subjects_paths)} - Searching subject samples in \'{subj_path}\'')
-            samples_paths = find_files_by_extension(subj_path, args.file_ext)
+            ignore_file_with = 'mean_embedding'
+            samples_paths = find_files_by_extension(subj_path, args.file_ext, ignore_file_with)
+            # print('samples_paths:', samples_paths)
+            # print('len(samples_paths):', len(samples_paths))
+            # sys.exit(0)
 
             loaded_samples = [None] * len(samples_paths)
             for idx_sf, sample_path in enumerate(samples_paths):
@@ -145,31 +171,57 @@ def main(args):
             # print('loaded_samples:', loaded_samples)
             # sys.exit(0)
 
-            dist_matrix = -np.ones((len(loaded_samples),len(loaded_samples)), dtype=np.float32)
+            mean_embedd_file_pattern = os.path.join(subj_path, '*_mean_embedding_*.npy')
+            mean_embedd_file_path = glob.glob(mean_embedd_file_pattern)
+            assert len(mean_embedd_file_path) > 0, f'Error, no file found with pattern: \'{mean_embedd_file_pattern}\''
+            mean_embedd_file_path = mean_embedd_file_path[0]
+            mean_embedd = np.load(mean_embedd_file_path)
+
+            dist_to_mean_embedd = {}
+            dist_samples_matrix = -np.ones((len(loaded_samples),len(loaded_samples)), dtype=np.float32)
             for i in range(len(loaded_samples)):
-                for j in range(i+1, len(loaded_samples)):
-                    print(f'    Computing intra-class \'{args.metric}\' distances - i: {i}/{len(loaded_samples)}  j: {j}/{len(loaded_samples)}', end='\r')
-                    sample1 = loaded_samples[i]
-                    sample2 = loaded_samples[j]
+                sample1 = loaded_samples[i]
 
+                if not skip_distances_to_mean_embedd:
                     if args.metric == 'chamfer':
-                        dist = compute_chamfer_distance(sample1, sample2)
+                        dist_to_mean = compute_chamfer_distance(sample1, mean_embedd)
                     elif args.metric == 'cosine_3dmm' or args.metric == 'cosine_2d':
-                        dist = compute_cosine_distance(sample1, sample2)
+                        dist_to_mean = compute_cosine_distance(sample1, mean_embedd)
                     elif args.metric == 'euclidean_3dmm':
-                        dist = compute_euclidean_distance(sample1, sample2, normalize=False)
+                        dist_to_mean = compute_euclidean_distance(sample1, mean_embedd, normalize=False)
+                    dist_to_mean_embedd[samples_paths[i]] = dist_to_mean
 
-                    # chamfer_distances.append(chamfer_dist)
-                    # print('dist:', dist)
-                    dist_matrix[i,j] = dist
+                if not skip_distances_between_samples:
+                    for j in range(i+1, len(loaded_samples)):
+                        print(f'    Computing intra-class \'{args.metric}\' distances - i: {i}/{len(loaded_samples)}  j: {j}/{len(loaded_samples)}', end='\r')
+                        sample2 = loaded_samples[j]
+
+                        if args.metric == 'chamfer':
+                            dist = compute_chamfer_distance(sample1, sample2)
+                        elif args.metric == 'cosine_3dmm' or args.metric == 'cosine_2d':
+                            dist = compute_cosine_distance(sample1, sample2)
+                        elif args.metric == 'euclidean_3dmm':
+                            dist = compute_euclidean_distance(sample1, sample2, normalize=False)
+
+                        # chamfer_distances.append(chamfer_dist)
+                        # print('dist:', dist)
+                        dist_samples_matrix[i,j] = dist
             print('')
 
-            print(f'    Saving distances file: \'{output_distances_path}\'')
-            np.save(output_distances_path, dist_matrix)
+            if not skip_distances_to_mean_embedd:
+                print(f'    Saving distances to mean class: \'{output_distances_to_mean_path}\'')
+                # np.save(output_distances_to_mean_path, dist_to_mean_embedd)
+                with open(output_distances_to_mean_path, 'wb') as fp:
+                    pickle.dump(dist_to_mean_embedd, fp)
+
+            if not skip_distances_between_samples:
+                print(f'    Saving distances between samples: \'{output_distances_path}\'')
+                np.save(output_distances_path, dist_samples_matrix)
 
             subj_elapsed_time = (time.time() - subj_start_time)
             print('    subj_elapsed_time: %.2f sec' % (subj_elapsed_time))
             print('---------------------')
+            # sys.exit(0)
 
     print('\nFinished!')
 
