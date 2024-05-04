@@ -350,6 +350,7 @@ def main(cfg, args):
                 images, arcface = to_batch(path)
                 codedict = mica.encode(images, arcface)
                 opdict = mica.decode(codedict)
+                embedd_2D_arcface = codedict['arcface']
                 meshes = opdict['pred_canonical_shape_vertices']
                 code = opdict['pred_shape_code']
                 lmk = mica.flame.compute_landmarks(meshes)
@@ -379,6 +380,7 @@ def main(cfg, args):
 
                 if not args.save_only_sampled:
                     # cv2.imwrite(f'{dst}/render.jpg', image)   # original
+                    np.save(f'{dst}/embedd_2D_arcface', embedd_2D_arcface.cpu().numpy())
                     save_ply(f'{dst}/mesh.ply', pointcloud, faces=faces)  
                     save_obj(f'{dst}/mesh.obj', pointcloud, faces=faces)
                     np.save(f'{dst}/identity', code[0].cpu().numpy())
@@ -394,6 +396,8 @@ def main(cfg, args):
                     np.save(f'{dst}/mesh_centralized_nosetip_croped_radius={radius}.npy', centralized_pc)
                     # util.write_obj(f'{dst}/kpt7.obj', lmk_7_cpu)
                     # util.write_obj(f'{dst}/lmk68.obj', lmk68_cpu[0])
+                    np.save(f'{dst}/embedd_2D_arcface', embedd_2D_arcface.cpu().numpy())
+                    np.save(f'{dst}/identity', code[0].cpu().numpy())
 
                 elapsed_time = time.time() - start_time
                 print(f'Elapsed time: {elapsed_time} seconds')
