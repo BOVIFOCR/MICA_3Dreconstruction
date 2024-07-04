@@ -238,7 +238,7 @@ if __name__ == "__main__":
     parser.add_argument('--part', default=0, type=int, help='Specific part to process (works only if -div > 1)')
 
     parser.add_argument('--metric', default='euclidean_3dmm', type=str, help='Options: chamfer, cosine_3dmm, euclidean_3dmm, cosine_2d')
-    parser.add_argument('--file_ext', default='.ply', type=str, help='.ply, .obj, .npy')
+    parser.add_argument('--file_ext', default='.npy', type=str, help='.ply, .obj, .npy')
 
     parser.add_argument('--dont_replace_existing_files', action='store_true', help='')
 

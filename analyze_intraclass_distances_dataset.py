@@ -103,8 +103,12 @@ def save_histograms(all_distances, means, stds, filename, title):
     # Save the plot as PNG
     plt.savefig(filename)
 
+    f_name, f_extension = os.path.splitext(filename)
+    filename_svg = f_name + '.svg'
+    plt.savefig(filename_svg)
+
     # Show the plot (optional)
-    plt.show()
+    # plt.show()
 
 
 def main(args):

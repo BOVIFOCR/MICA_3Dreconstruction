@@ -6,6 +6,7 @@ import random
 import socket
 import time
 
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
@@ -22,6 +23,10 @@ from pytorch3d.io import load_obj, load_ply
 from pytorch3d.loss import chamfer_distance
 
 from models.arcface import Arcface
+
+
+input_mean = 127.5
+input_std = 127.5
 
 
 def get_parts_indices(sub_folders, divisions):
@@ -53,8 +58,14 @@ def load_sample(file_path):
     elif file_path.endswith('.npy'):
         vertices = np.load(file_path)
         vertices = torch.from_numpy(vertices)
+    elif file_path.endswith('.jpg') or file_path.endswith('.png'):
+        vertices_bgr = cv2.imread(file_path)
+        vertices_blob = cv2.dnn.blobFromImages([vertices_bgr], 1.0 / input_std, (112, 112), (input_mean, input_mean, input_mean), swapRB=True)
+        vertices = torch.from_numpy(vertices_blob)
+        if len(vertices.shape) > 3:
+            vertices = torch.squeeze(vertices)
     else:
-        raise ValueError("Unsupported file format. Only .obj and .ply files are supported.")
+        raise ValueError("Unsupported file format. Only \'.obj\', \'.ply\', \'.npy\', \'.jpg\', and \'.png\' files are supported.")
     return vertices
     
 
@@ -143,7 +154,7 @@ def main(args):
                     embedd_normalized = np.load(embedd_file_path)
                     embedds_subj[idx_sample] = embedd_normalized
 
-                if args.dont_replace_existing_files:
+                if not args.dont_replace_existing_files:
                     np.save(embedd_file_path, embedd_normalized)
                 # print('\nembedd.shape:', embedd.shape)
                 # sys.exit(0)
@@ -174,7 +185,7 @@ if __name__ == "__main__":
     parser.add_argument('--divs', default=1, type=int, help='How many parts to divide paths list (useful to paralelize process)')
     parser.add_argument('--part', default=0, type=int, help='Specific part to process (works only if -div > 1)')
 
-    parser.add_argument('--file_ext', default='.npy', type=str, help='.npy, .jpg')
+    parser.add_argument('--file_ext', default='.jpg', type=str, help='.npy, .jpg')
 
     parser.add_argument('--dont_replace_existing_files', action='store_true', help='')
 
