@@ -92,7 +92,8 @@ def save_histograms(all_distances, means, stds, filename, title):
 
     # Add title, labels, and legend
     plt.title(title)
-    plt.xlabel('Distance')
+    # plt.xlabel('Distance')
+    plt.xlabel('Similarity')
     plt.ylabel('Frequency')
     plt.legend()
 

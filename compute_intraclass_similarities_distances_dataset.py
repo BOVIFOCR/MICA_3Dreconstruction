@@ -61,7 +61,7 @@ def compute_chamfer_distance(points1, points2):
     return chamfer_dist[0]
 
 
-def compute_cosine_distance(array1, array2, normalize=True):
+def compute_cosine_similarity(array1, array2, normalize=True):
     if array1.shape[0] == 1:
         array1 = array1[0]
     if array2.shape[0] == 1:
@@ -76,8 +76,7 @@ def compute_cosine_distance(array1, array2, normalize=True):
         array1 = torch.nn.functional.normalize(array1, dim=0)
         array2 = torch.nn.functional.normalize(array2, dim=0)
     cos_sim = nn.CosineSimilarity(dim=0, eps=1e-6)(array1, array2)
-    cos_dist = 1.0 - cos_sim
-    return cos_dist
+    return cos_sim
 
 
 def compute_euclidean_distance(array1, array2, normalize=True):
@@ -106,7 +105,8 @@ def main(args):
     assert args.part < args.divs, f'Error, args.part ({args.part}) >= args.divs ({args.divs}), but should be args.part ({args.part}) < args.divs ({args.divs})'
 
     dataset_path = args.input_path.rstrip('/')
-    output_path = os.path.join(os.path.dirname(dataset_path), 'distances_'+args.metric)
+    # output_path = os.path.join(os.path.dirname(dataset_path), 'distances_'+args.metric)
+    output_path = os.path.join(os.path.dirname(dataset_path), 'similarities_'+args.metric)
     os.makedirs(output_path, exist_ok=True)
 
     print('dataset_path:', dataset_path)
@@ -124,7 +124,7 @@ def main(args):
     print('')
     # sub_folders = subjects_paths[begin_parts[args.part]:end_parts[args.part]]
 
-    print('Computing distances...\n')
+    print('Computing similarities/distances...\n')
     for idx_subj, subj_path in enumerate(subjects_paths):
         if idx_subj >= idx_subj_begin and idx_subj < idx_subj_end:
             subj_start_time = time.time()
@@ -134,11 +134,13 @@ def main(args):
             os.makedirs(output_subj_path, exist_ok=True)
 
             skip_distances_between_samples = False
-            distances_file_name = 'distances_'+args.metric+'.npy'
+            # distances_file_name = 'distances_'+args.metric+'.npy'
+            distances_file_name = 'similarities_'+args.metric+'.npy'
             output_distances_path = os.path.join(output_subj_path, distances_file_name)
 
             skip_distances_to_mean_embedd = False
-            distances_to_mean_file_name = 'distances_'+args.metric+'_to_mean_class_embedd.pkl'
+            # distances_to_mean_file_name = 'distances_'+args.metric+'_to_mean_class_embedd.pkl'
+            distances_to_mean_file_name = 'similarities_'+args.metric+'_to_mean_class_embedd.pkl'
             output_distances_to_mean_path = os.path.join(output_subj_path, distances_to_mean_file_name)
 
             if args.dont_replace_existing_files:
@@ -186,7 +188,7 @@ def main(args):
                     if args.metric == 'chamfer':
                         dist_to_mean = compute_chamfer_distance(sample1, mean_embedd)
                     elif args.metric == 'cosine_3dmm' or args.metric == 'cosine_2d':
-                        dist_to_mean = compute_cosine_distance(sample1, mean_embedd)
+                        dist_to_mean = compute_cosine_similarity(sample1, mean_embedd)
                     elif args.metric == 'euclidean_3dmm':
                         dist_to_mean = compute_euclidean_distance(sample1, mean_embedd, normalize=False)
                     dist_to_mean_embedd[samples_paths[i]] = dist_to_mean
@@ -199,7 +201,7 @@ def main(args):
                         if args.metric == 'chamfer':
                             dist = compute_chamfer_distance(sample1, sample2)
                         elif args.metric == 'cosine_3dmm' or args.metric == 'cosine_2d':
-                            dist = compute_cosine_distance(sample1, sample2)
+                            dist = compute_cosine_similarity(sample1, sample2)
                         elif args.metric == 'euclidean_3dmm':
                             dist = compute_euclidean_distance(sample1, sample2, normalize=False)
 
@@ -209,13 +211,13 @@ def main(args):
             print('')
 
             if not skip_distances_to_mean_embedd:
-                print(f'    Saving distances to mean class: \'{output_distances_to_mean_path}\'')
+                print(f'    Saving similarities/distances to mean class: \'{output_distances_to_mean_path}\'')
                 # np.save(output_distances_to_mean_path, dist_to_mean_embedd)
                 with open(output_distances_to_mean_path, 'wb') as fp:
                     pickle.dump(dist_to_mean_embedd, fp)
 
             if not skip_distances_between_samples:
-                print(f'    Saving distances between samples: \'{output_distances_path}\'')
+                print(f'    Saving similarities/distances between samples: \'{output_distances_path}\'')
                 np.save(output_distances_path, dist_samples_matrix)
 
             subj_elapsed_time = (time.time() - subj_start_time)
