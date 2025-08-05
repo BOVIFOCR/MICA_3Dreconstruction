@@ -171,13 +171,23 @@ def main(args):
                 loaded_samples[idx_sf] = data
             print('')
             # print('loaded_samples:', loaded_samples)
+            # print('len(loaded_samples):', len(loaded_samples))
             # sys.exit(0)
 
             mean_embedd_file_pattern = os.path.join(subj_path, '*_mean_embedding_*.npy')
             mean_embedd_file_path = glob.glob(mean_embedd_file_pattern)
-            assert len(mean_embedd_file_path) > 0, f'Error, no file found with pattern: \'{mean_embedd_file_pattern}\''
-            mean_embedd_file_path = mean_embedd_file_path[0]
-            mean_embedd = np.load(mean_embedd_file_path)
+            if len(mean_embedd_file_path) > 0:
+                mean_embedd_file_path = mean_embedd_file_path[0]
+                mean_embedd = np.load(mean_embedd_file_path)
+            else:
+                embedds_subj = torch.zeros((len(samples_paths),1,loaded_samples[-1].shape[1]), dtype=torch.float32)
+                for idx_embedd, embedd in enumerate(loaded_samples):
+                    embedds_subj[idx_embedd] = embedd
+                mean_embedd = embedds_subj.mean(axis=0)
+                # print('embedds_subj:', embedds_subj)
+                # print('embedds_subj.shape:', embedds_subj.shape)
+                # print('mean_embedd.shape:', mean_embedd.shape)
+                # sys.exit(0)                
 
             dist_to_mean_embedd = {}
             dist_samples_matrix = -np.ones((len(loaded_samples),len(loaded_samples)), dtype=np.float32)
