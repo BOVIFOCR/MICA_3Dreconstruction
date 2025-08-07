@@ -46,11 +46,14 @@ def flat_array_remove_invalid_values(array, invalid_value=-1):
 
 
 def compute_metrics_distances_subject(dist_data):
-    metrics = {}
-    metrics['all_distances'] = dist_data
-    metrics['mean'] = np.mean(dist_data)
-    metrics['std'] = np.std(dist_data)
-    return metrics
+    if dist_data.size > 0:
+        metrics = {}
+        metrics['all_distances'] = dist_data
+        metrics['mean'] = np.mean(dist_data)
+        metrics['std'] = np.std(dist_data)
+        return metrics
+    else:
+        return None
 
 
 def merge_metrics_dists(metrics_dist_subj):
@@ -147,9 +150,11 @@ def main(args):
             # print('dist_between_samples_data.shape:', dist_between_samples_data.shape)
             # sys.exit(0)
 
-            metrics_dist_between_samples_subj[subj_name] = compute_metrics_distances_subject(dist_between_samples_data)
-            # print('metrics_dist_between_samples_subj:', metrics_dist_between_samples_subj)
-            # sys.exit(0)
+            metrics = compute_metrics_distances_subject(dist_between_samples_data)
+            if not metrics is None:
+                metrics_dist_between_samples_subj[subj_name] = metrics
+                # print('metrics_dist_between_samples_subj:', metrics_dist_between_samples_subj)
+                # sys.exit(0)
 
         # Distances to mean embedding
         file_pattern_dist_to_mean_subj = os.path.join(subj_path, '*.pkl')
