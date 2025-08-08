@@ -16,6 +16,7 @@ from pytorch3d.loss import chamfer_distance
 from mpl_toolkits.mplot3d import Axes3D
 
 import glob
+from pathlib import Path
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from pytorch3d.io import load_obj, load_ply
@@ -100,6 +101,13 @@ def find_files_by_extension(folder_path, extension, ignore_file_with=''):
     return sorted(matching_files)
 
 
+def get_leaf_subdirs(base_path):
+    base = Path(base_path)
+    return [
+        str(p) for p in base.rglob("*")
+        if p.is_dir() and not any(child.is_dir() for child in p.iterdir())
+    ]
+
 
 def main(args):
     assert args.part < args.divs, f'Error, args.part ({args.part}) >= args.divs ({args.divs}), but should be args.part ({args.part}) < args.divs ({args.divs})'
@@ -111,7 +119,8 @@ def main(args):
 
     print('dataset_path:', dataset_path)
     print('Searching subject subfolders...')
-    subjects_paths = sorted([os.path.join(dataset_path,subj) for subj in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, subj))])
+    # subjects_paths = sorted([os.path.join(dataset_path,subj) for subj in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, subj))])
+    subjects_paths = get_leaf_subdirs(dataset_path)
     # print('subjects_paths:', subjects_paths)
     print(f'Found {len(subjects_paths)} subjects!')
 
