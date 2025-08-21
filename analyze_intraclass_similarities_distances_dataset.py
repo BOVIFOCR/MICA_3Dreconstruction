@@ -137,7 +137,7 @@ def main(args):
         print(f'{idx_subj}/{len(subjects_paths)} - Loading subject \'{subj_name}\'', end='\r')
 
         # Distances between samples
-        file_pattern_dist_between_samples = os.path.join(subj_path, '*' + args.file_ext)
+        file_pattern_dist_between_samples = os.path.join(glob.escape(subj_path), '*' + args.file_ext)
         dist_between_samples_file_path = glob.glob(file_pattern_dist_between_samples)
         if len(dist_between_samples_file_path) > 0:
             # assert len(dist_between_samples_file_path) > 0, f'Error, file not found: \'{file_pattern}\''
@@ -157,7 +157,7 @@ def main(args):
                 # sys.exit(0)
 
         # Distances to mean embedding
-        file_pattern_dist_to_mean_subj = os.path.join(subj_path, '*.pkl')
+        file_pattern_dist_to_mean_subj = os.path.join(glob.escape(subj_path), '*.pkl')
         dist_to_mean_subj_file_path = glob.glob(file_pattern_dist_to_mean_subj)
         if len(dist_to_mean_subj_file_path) > 0:
             dist_to_mean_subj_file_path = dist_to_mean_subj_file_path[0]
