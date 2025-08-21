@@ -113,9 +113,7 @@ def main(args):
     assert args.part < args.divs, f'Error, args.part ({args.part}) >= args.divs ({args.divs}), but should be args.part ({args.part}) < args.divs ({args.divs})'
 
     dataset_path = args.input_path.rstrip('/')
-    # output_path = os.path.join(os.path.dirname(dataset_path), 'distances_'+args.metric)
-    # output_path = os.path.join(os.path.dirname(dataset_path), 'similarities_'+args.metric)
-    output_path = f'{dataset_path}_SIMILARITIES_{args.metric}'
+    output_path = f'{dataset_path}_INTRACLASS_SIMILARITIES_{args.metric}'
     os.makedirs(output_path, exist_ok=True)
 
     print('dataset_path:', dataset_path)
