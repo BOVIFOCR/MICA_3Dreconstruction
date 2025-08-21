@@ -105,7 +105,7 @@ def main(args):
     arcface.eval()
 
     dataset_path = args.input_path.rstrip('/')
-    output_path = os.path.join(os.path.dirname(dataset_path), 'embeddings2D')
+    output_path = os.path.join(os.path.dirname(dataset_path), f'{os.path.basename(dataset_path)}_FACE_EMBEDDINGS')
     os.makedirs(output_path, exist_ok=True)
 
     print('dataset_path:', dataset_path)
