@@ -114,7 +114,8 @@ def main(args):
 
     dataset_path = args.input_path.rstrip('/')
     # output_path = os.path.join(os.path.dirname(dataset_path), 'distances_'+args.metric)
-    output_path = os.path.join(os.path.dirname(dataset_path), 'similarities_'+args.metric)
+    # output_path = os.path.join(os.path.dirname(dataset_path), 'similarities_'+args.metric)
+    output_path = f'{dataset_path}_SIMILARITIES_{args.metric}'
     os.makedirs(output_path, exist_ok=True)
 
     print('dataset_path:', dataset_path)
@@ -258,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument('--divs', default=1, type=int, help='How many parts to divide paths list (useful to paralelize process)')
     parser.add_argument('--part', default=0, type=int, help='Specific part to process (works only if -div > 1)')
 
-    parser.add_argument('--metric', default='euclidean_3dmm', type=str, help='Options: chamfer, cosine_3dmm, euclidean_3dmm, cosine_2d')
+    parser.add_argument('--metric', default='cosine_2d', type=str, help='Options: chamfer, cosine_3dmm, euclidean_3dmm, cosine_2d')
     parser.add_argument('--file_ext', default='.npy', type=str, help='.ply, .obj, .npy')
 
     parser.add_argument('--dont_replace_existing_files', action='store_true', help='')
