@@ -134,6 +134,7 @@ def main(args):
 
             print(f'subj {idx_subj-idx_subj_begin}/{num_subjs_part}: {subj} - Searching samples...')
             samples_file_name = sorted([sample for sample in os.listdir(subj_path) if os.path.isfile(os.path.join(subj_path, sample)) and sample.endswith(args.file_ext)])
+            assert len(samples_file_name) > 0, f'Error, no such file or directory found with extension \'{args.file_ext}\' in dir \'{subj_path}\''
             samples_paths = [os.path.join(subj_path, sample) for sample in samples_file_name]
 
             embedds_subj = np.zeros((len(samples_paths),1,512), dtype=np.float32)
