@@ -17,6 +17,7 @@ from pytorch3d.loss import chamfer_distance
 from mpl_toolkits.mplot3d import Axes3D
 
 import glob
+from pathlib import Path
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from pytorch3d.io import load_obj, load_ply
@@ -95,6 +96,14 @@ def compute_euclidean_distance(array1, array2, normalize=True):
     return eucl_dist
 
 
+def get_leaf_subdirs(base_path):
+    base = Path(base_path)
+    return [
+        str(p) for p in base.rglob("*")
+        if p.is_dir() and not any(child.is_dir() for child in p.iterdir())
+    ]
+
+
 def main(args):
     assert args.part < args.divs, f'Error, args.part ({args.part}) >= args.divs ({args.divs}), but should be args.part ({args.part}) < args.divs ({args.divs})'
 
@@ -111,7 +120,8 @@ def main(args):
 
     print('dataset_path:', dataset_path)
     print('Searching subject subfolders...')
-    subjects_paths = sorted([os.path.join(dataset_path,subj) for subj in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, subj))])
+    # subjects_paths = sorted([os.path.join(dataset_path,subj) for subj in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, subj))])
+    subjects_paths = get_leaf_subdirs(dataset_path)
     # print('subjects_paths:', subjects_paths)
     print(f'Found {len(subjects_paths)} subjects!')
 
@@ -130,7 +140,11 @@ def main(args):
             subj_start_time = time.time()
 
             subj = os.path.basename(subj_path)
-            output_subj_path = os.path.join(output_path, subj)
+            subj_sub_path = subj_path.replace(dataset_path, '').strip('/')
+            if subj_sub_path != '':
+                output_subj_path = os.path.join(output_path, subj_sub_path)
+            else:
+                output_subj_path = os.path.join(output_path, subj)
             os.makedirs(output_subj_path, exist_ok=True)
 
             print(f'subj {idx_subj-idx_subj_begin}/{num_subjs_part}: {subj} - Searching samples...')
@@ -140,9 +154,12 @@ def main(args):
 
             embedds_subj = np.zeros((len(samples_paths),1,512), dtype=np.float32)
             for idx_sample, sample_path in enumerate(samples_paths):
-                sample_name = os.path.basename(sample_path).split('.')[0]
+                sample_name = os.path.splitext(os.path.basename(sample_path))[0]
                 embedd_file_name = f'{sample_name}_embedding_r100_arcface.npy'
                 embedd_file_path = os.path.join(output_subj_path, embedd_file_name)
+                # print('embedd_file_path:', embedd_file_path)
+                # print('os.path.isfile(embedd_file_path):', os.path.isfile(embedd_file_path))
+                # sys.exit(0)
 
                 if not os.path.isfile(embedd_file_path):
                     print(f'    Computing and saving 2D embeddings - {idx_sample}/{len(samples_paths)}', end='\r')
