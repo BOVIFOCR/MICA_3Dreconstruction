@@ -180,13 +180,13 @@ def main(args):
     # print('all_means_dist.shape:', all_means_dist.shape)
 
     title = f'dataset \'{args.dataset_name}\' - {len(metrics_dist_between_samples_subj)} subjects - {args.metric}'
-    chart_file_name = 'histograms_distances_between_samples_' + args.metric + '.png'
+    chart_file_name = 'INTRACLASS_SIMILARITIES_histograms_distances_between_samples_' + args.metric + '.png'
     chart_file_path = os.path.join(output_path, chart_file_name)
     print(f'Saving histograms: \'{chart_file_path}\'')
     save_histograms(all_dist_between_samples, all_means_dist_between_samples, all_stds_dist_between_samples, chart_file_path, title)
 
     title = f'dataset \'{args.dataset_name}\' - {len(metrics_dist_to_mean_subj)} subjects - {args.metric}'
-    chart_file_name = 'histograms_distances_to_mean_embedd_' + args.metric + '.png'
+    chart_file_name = 'INTRACLASS_SIMILARITIES_histograms_distances_to_mean_embedd_' + args.metric + '.png'
     chart_file_path = os.path.join(output_path, chart_file_name)
     print(f'Saving histograms: \'{chart_file_path}\'')
     save_histograms(all_dist_to_mean_embedd, all_means_dist_to_mean_embedd, all_stds_dist_to_mean_embedd, chart_file_path, title)
@@ -201,7 +201,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-path', type=str, default='/datasets2/1st_frcsyn_wacv2024/datasets/3D_reconstruction_MICA/real/1_CASIA-WebFace/imgs_crops_112x112/distances_cosine_3dmm')
     
-    parser.add_argument('--metric', default='euclidean_3dmm', type=str, help='Options: chamfer, cosine_3dmm, cosine_2d')
+    parser.add_argument('--metric', default='cosine_2d', type=str, help='Options: cosine_2d, euclidean_3dmm, cosine_3dmm, chamfer')
     parser.add_argument('--file_ext', default='.npy', type=str, help='.npy')
     parser.add_argument('--dataset_name', default='CASIA-WebFace', type=str, help='')
 
