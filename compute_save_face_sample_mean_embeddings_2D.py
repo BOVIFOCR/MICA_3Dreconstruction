@@ -161,16 +161,16 @@ def main(args):
                 # print('os.path.isfile(embedd_file_path):', os.path.isfile(embedd_file_path))
                 # sys.exit(0)
 
-                if not os.path.isfile(embedd_file_path):
+                try:
+                    print(f'    Loading 2D embeddings - {idx_sample}/{len(samples_paths)}', end='\r')
+                    embedd_normalized = np.load(embedd_file_path)
+                    embedds_subj[idx_sample] = embedd_normalized
+                except (FileNotFoundError, ValueError) as e:
                     print(f'    Computing and saving 2D embeddings - {idx_sample}/{len(samples_paths)}', end='\r')
                     img_tensor = load_sample(sample_path)
                     img_tensor = img_tensor.cuda()[None]
                     embedd_normalized = F.normalize(arcface(img_tensor))
                     embedd_normalized = embedd_normalized.cpu().detach().numpy()
-                    embedds_subj[idx_sample] = embedd_normalized
-                else:
-                    print(f'    Loading 2D embeddings - {idx_sample}/{len(samples_paths)}', end='\r')
-                    embedd_normalized = np.load(embedd_file_path)
                     embedds_subj[idx_sample] = embedd_normalized
 
                 if not args.dont_replace_existing_files:
