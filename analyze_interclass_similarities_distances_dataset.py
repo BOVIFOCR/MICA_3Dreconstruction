@@ -268,8 +268,10 @@ def main(args):
     # print('pmf:', pmf, '    pmf.sum():', pmf.sum())
     # print('-------------')
 
+
+
     title = f"dataset \'{args.dataset_name}\' - {total_num_subjs} subjects - {args.metric}"
-    chart_file_name = 'INTERCLASS_SIMILARITIES_histograms_distances_between_samples_' + args.metric + '.png'
+    chart_file_name = f'{prefix_output_filename}_histograms_distances_between_samples_' + args.metric + '.png'
     chart_file_path = os.path.join(output_path, chart_file_name)
     print(f'Saving histogram: \'{chart_file_path}\'')
     save_bar_plot_from_histogram(bins_edges, pmf, bins_widths, chart_file_path, title)
