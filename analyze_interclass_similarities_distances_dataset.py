@@ -15,6 +15,33 @@ import matplotlib.pyplot as plt
 
 
 
+def save_dict(data: dict, filename: str) -> None:
+    serializable_data = {}
+    for key, value in data.items():
+        if isinstance(value, torch.Tensor):
+            serializable_data[key] = value.detach().cpu().numpy()
+        else:
+            serializable_data[key] = value
+    
+    with open(filename, "wb") as f:
+        pickle.dump(serializable_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_dict(filename: str) -> dict:
+    with open(filename, "rb") as f:
+        data = pickle.load(f)
+    restored_data = {}
+    for key, value in data.items():
+        if isinstance(value, np.ndarray):
+            try:
+                restored_data[key] = torch.from_numpy(value)
+            except Exception:
+                restored_data[key] = value
+        else:
+            restored_data[key] = value
+    return restored_data
+
+
 def load_distances(file_path):
     if file_path.endswith('.pt'):
         dists = torch.load(file_path)
@@ -36,6 +63,7 @@ def flat_array_remove_invalid_values(array, invalid_value=-1):
 
     flat_array = array.flatten()
     valid_values = flat_array[flat_array != invalid_value]
+    valid_values = np.clip(valid_values, 0.0, 1.0)
     return valid_values
 
 
@@ -109,6 +137,27 @@ def save_histograms(all_distances, means, stds, filename, title):
     # plt.show()
 
 
+def save_bar_plot_from_histogram(bins_edges, pmf, bins_widths, filename, title):
+    plt.bar(bins_edges[:-1], pmf, width=bins_widths, align="edge", edgecolor='black', alpha=0.7, label='All dists')
+    
+    # Add title, labels, and legend
+    plt.title(title)
+    plt.xlabel('Similarity')
+    plt.ylabel('Frequency')
+    plt.legend()
+
+    plt.xlim([0, 1])
+    # plt.ylim([0, 0.5])
+    plt.ylim([0, 1.0])
+
+    # Save the plot as PNG
+    plt.savefig(filename)
+
+    f_name, f_extension = os.path.splitext(filename)
+    filename_svg = f_name + '.svg'
+    plt.savefig(filename_svg)
+
+
 def get_leaf_subdirs(base_path):
     base = Path(base_path)
     return [
@@ -119,84 +168,111 @@ def get_leaf_subdirs(base_path):
 
 def main(args):
     dataset_path = args.input_path.rstrip('/')
+    assert os.path.isdir(dataset_path), f'Error, no such dir: \'{dataset_path}\''
     output_path = os.path.dirname(dataset_path)
     # os.makedirs(output_path, exist_ok=True)
 
-    print('dataset_path:', dataset_path)
-    print('Searching subject subfolders...')
-    # subjects_paths = sorted([os.path.join(dataset_path,subj) for subj in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, subj))])
-    subjects_paths = get_leaf_subdirs(dataset_path)
-    # print('subjects_paths:', subjects_paths)
-    print(f'Found {len(subjects_paths)} subjects!')
-    # sys.exit(0)
+    prefix_output_filename = 'INTERCLASS_SIMILARITIES'
+    path_precomputed_histograms = os.path.join(output_path, f'{prefix_output_filename}_computed_data.pkl')
+    
+    if args.compute_from_scratch or not os.path.isfile(path_precomputed_histograms):
+        print('dataset_path:', dataset_path)
+        print('Searching subject subfolders...')
+        # subjects_paths = sorted([os.path.join(dataset_path,subj) for subj in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, subj))])
+        subjects_paths = get_leaf_subdirs(dataset_path)
+        # print('subjects_paths:', subjects_paths)
+        print(f'Found {len(subjects_paths)} subjects!')
+        # sys.exit(0)
 
-    metrics_dist_between_samples_subj = {}
-    metrics_dist_to_mean_subj = {}
-    print('Loading similarities...\n')
-    for idx_subj, subj_path in enumerate(subjects_paths):
-        subj_start_time = time.time()
+        nbins = 20
+        lower, higher = 0.0, 1.0
+        bins_edges = np.linspace(lower, higher, nbins+1)
+        total_counts = np.zeros(nbins, dtype=np.int64)
+        total_seen = 0
         
-        subj_name = os.path.basename(subj_path)
-        print(f'{idx_subj}/{len(subjects_paths)} - Loading subject \'{subj_name}\'', end='\r')
+        print('\nLoading similarities...')
+        for idx_subj, subj_path in enumerate(subjects_paths):
+            subj_start_time = time.time()
+            
+            subj_name = os.path.basename(subj_path)
+            print(f'{idx_subj}/{len(subjects_paths)} - Loading subject \'{subj_name}\'', end='\r')
 
-        # Distances between samples
-        file_pattern_dist_between_samples = os.path.join(glob.escape(subj_path), '*' + args.file_ext)
-        dist_between_samples_file_path = glob.glob(file_pattern_dist_between_samples)
-        if len(dist_between_samples_file_path) > 0:
-            # assert len(dist_between_samples_file_path) > 0, f'Error, file not found: \'{file_pattern}\''
+            # Distances between subjects
+            file_pattern_dist_between_samples = os.path.join(glob.escape(subj_path), '*' + args.file_ext)
+            dist_between_samples_file_path = glob.glob(file_pattern_dist_between_samples)
+            
+            assert len(dist_between_samples_file_path) > 0, f'Error, file not found: \'{file_pattern}\''
             dist_between_samples_file_path = dist_between_samples_file_path[0]
             dist_between_samples_data = load_distances(dist_between_samples_file_path)
             # print('dist_between_samples_data:', dist_between_samples_data)
             # print('dist_between_samples_data.shape:', dist_between_samples_data.shape)
             # sys.exit(0)
 
-            if len(dist_between_samples_data.shape) > 1:
-                dist_between_samples_data = flat_array_remove_invalid_values(dist_between_samples_data, invalid_value=-1)
-                # print('dist_between_samples_data:', dist_between_samples_data)
-                # print('dist_between_samples_data.shape:', dist_between_samples_data.shape)
-                # sys.exit(0)
+            # if len(dist_between_samples_data.shape) > 1:
+            dist_between_samples_data = flat_array_remove_invalid_values(dist_between_samples_data, invalid_value=-1)
+            # print('dist_between_samples_data:', dist_between_samples_data)
+            # print('\ndist_between_samples_data.shape:', dist_between_samples_data.shape)
+            # sys.exit(0)
 
             metrics = compute_metrics_distances_subject(dist_between_samples_data)
             if not metrics is None:
-                metrics_dist_between_samples_subj[subj_name] = metrics
-                # print('metrics_dist_between_samples_subj:', metrics_dist_between_samples_subj)
-                # sys.exit(0)
+                bins_counts, _ = np.histogram(metrics['all_distances'], bins=bins_edges, range=(lower,higher))
+                total_counts += bins_counts
+                total_seen += metrics['all_distances'].size
 
-        # # Distances to mean embedding
-        # file_pattern_dist_to_mean_subj = os.path.join(glob.escape(subj_path), '*.pkl')
-        # dist_to_mean_subj_file_path = glob.glob(file_pattern_dist_to_mean_subj)
-        # if len(dist_to_mean_subj_file_path) > 0:
-        #     dist_to_mean_subj_file_path = dist_to_mean_subj_file_path[0]
-        #     dist_to_mean_subj_data = load_distances(dist_to_mean_subj_file_path)
-        #     # print('dist_to_mean_subj_data:', dist_to_mean_subj_data)
-        #     # sys.exit(0)
-        #
-        #     dist_to_mean_subj_data = flat_array_remove_invalid_values(dist_to_mean_subj_data, invalid_value=-1)
-        #     # print('dist_to_mean_subj_data:', dist_to_mean_subj_data)
-        #     # sys.exit(0)
-        #
-        #     metrics_dist_to_mean_subj[subj_name] = compute_metrics_distances_subject(dist_to_mean_subj_data)
-        
-    print('')
-    
-    print('Merging metrics...')
-    all_dist_between_samples, all_means_dist_between_samples, all_stds_dist_between_samples = merge_metrics_dists(metrics_dist_between_samples_subj)
-    # all_dist_to_mean_embedd, all_means_dist_to_mean_embedd, all_stds_dist_to_mean_embedd = merge_metrics_dists(metrics_dist_to_mean_subj)
-    # print('all_dist_between_samples:', all_dist_between_samples)
-    print('    all_dist_between_samples.shape:', all_dist_between_samples.shape)
-    # sys.exit(0)
+                # print('bins_counts:', bins_counts, '    bins_counts.sum():', bins_counts.sum())
+                # print('bins_edges:', bins_edges)
+                # print('total_counts:', total_counts)
+                # print('total_seen:', total_seen)
+                # print('-------------')
+                
+                # if idx_subj >= 9:
+                #     break
 
-    title = f'dataset \'{args.dataset_name}\' - {len(metrics_dist_between_samples_subj)} subjects - {args.metric}'
+        total_num_subjs = idx_subj+1
+        print('')
+
+        bins_widths = np.diff(bins_edges)
+        n_in_range = total_counts.sum()
+        density = total_counts / (n_in_range * bins_widths)
+        pmf = total_counts / total_counts.sum()
+
+        hist_computed_data = {}
+        hist_computed_data['nbins']                               = nbins
+        hist_computed_data['lower'], hist_computed_data['higher'] = lower, higher
+        hist_computed_data['bins_edges']                          = bins_edges
+        hist_computed_data['total_counts']                        = total_counts
+        hist_computed_data['total_seen']                          = total_seen
+        hist_computed_data['bins_widths']                         = bins_widths
+        hist_computed_data['density']                             = density
+        hist_computed_data['pmf']                                 = pmf
+        hist_computed_data['total_num_subjs']                     = total_num_subjs
+
+        print(f'\nSaving computed data: \'{path_precomputed_histograms}\'')
+        save_dict(hist_computed_data, path_precomputed_histograms)
+
+    else:
+        print(f'\nLoading computed data: \'{path_precomputed_histograms}\'')
+        hist_computed_data = load_dict(path_precomputed_histograms)
+        nbins           = hist_computed_data['nbins']
+        lower, higher   = hist_computed_data['lower'], hist_computed_data['higher']
+        bins_edges      = hist_computed_data['bins_edges']
+        total_counts    = hist_computed_data['total_counts']
+        total_seen      = hist_computed_data['total_seen']
+        bins_widths     = hist_computed_data['bins_widths']
+        density         = hist_computed_data['density']
+        pmf             = hist_computed_data['pmf']
+        total_num_subjs = hist_computed_data['total_num_subjs']
+
+    # print('density:', density, '    density.sum():', density.sum())
+    # print('pmf:', pmf, '    pmf.sum():', pmf.sum())
+    # print('-------------')
+
+    title = f"dataset \'{args.dataset_name}\' - {total_num_subjs} subjects - {args.metric}"
     chart_file_name = 'INTERCLASS_SIMILARITIES_histograms_distances_between_samples_' + args.metric + '.png'
     chart_file_path = os.path.join(output_path, chart_file_name)
-    print(f'\nSaving histograms: \'{chart_file_path}\'')
-    save_histograms(all_dist_between_samples, all_means_dist_between_samples, all_stds_dist_between_samples, chart_file_path, title)
-
-    # title = f'dataset \'{args.dataset_name}\' - {len(metrics_dist_to_mean_subj)} subjects - {args.metric}'
-    # chart_file_name = 'INTERCLASS_SIMILARITIES_histograms_distances_to_mean_embedd_' + args.metric + '.png'
-    # chart_file_path = os.path.join(output_path, chart_file_name)
-    # print(f'Saving histograms: \'{chart_file_path}\'')
-    # save_histograms(all_dist_to_mean_embedd, all_means_dist_to_mean_embedd, all_stds_dist_to_mean_embedd, chart_file_path, title)
+    print(f'Saving histogram: \'{chart_file_path}\'')
+    save_bar_plot_from_histogram(bins_edges, pmf, bins_widths, chart_file_path, title)
 
     print('\nFinished!')
 
@@ -211,6 +287,8 @@ if __name__ == "__main__":
     parser.add_argument('--metric', default='cosine_2d', type=str, help='Options: cosine_2d, euclidean_3dmm, cosine_3dmm, chamfer')
     parser.add_argument('--file_ext', default='.pt', type=str, help='.pt, .npy, .pkl')
     parser.add_argument('--dataset_name', default='CASIA-WebFace', type=str, help='')
+
+    parser.add_argument('--compute_from_scratch', action='store_true', help='')
 
     args = parser.parse_args()
 
