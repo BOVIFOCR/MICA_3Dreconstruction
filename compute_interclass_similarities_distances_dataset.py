@@ -16,16 +16,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from pytorch3d.io import load_obj
-from pytorch3d.loss import chamfer_distance
+# from pytorch3d.io import load_obj
+# from pytorch3d.loss import chamfer_distance
 from mpl_toolkits.mplot3d import Axes3D
 
 import glob
 from pathlib import Path
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from pytorch3d.io import load_obj, load_ply
-from pytorch3d.loss import chamfer_distance
+# from pytorch3d.io import load_obj, load_ply
+# from pytorch3d.loss import chamfer_distance
 
 
 def get_parts_indices(sub_folders, divisions):
